@@ -88,46 +88,76 @@ Example response structure:
   "tags": []
 }`;
 
-export async function generateWorkflow(prompt: string, apiKey?: string): Promise<N8nWorkflow> {
+export async function generateWorkflow(prompt: string, model: 'openai' | 'gemini', apiKey?: string): Promise<N8nWorkflow> {
   if (!prompt || prompt.trim().length === 0) {
     throw new Error('Prompt is required');
   }
 
   // Use provided API key or show error for missing key
   if (!apiKey) {
-    throw new Error('OpenAI API key is required. Please add your API key in settings.');
+    const modelName = model === 'openai' ? 'OpenAI' : 'Gemini';
+    throw new Error(`${modelName} API key is required. Please add your API key in settings.`);
   }
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: SYSTEM_PROMPT
-        },
-        {
-          role: 'user',
-          content: `Create an n8n workflow for: ${prompt}`
+  let response: Response;
+  
+  if (model === 'openai') {
+    response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: SYSTEM_PROMPT
+          },
+          {
+            role: 'user',
+            content: `Create an n8n workflow for: ${prompt}`
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+    });
+  } else {
+    // Gemini API
+    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `${SYSTEM_PROMPT}\n\nCreate an n8n workflow for: ${prompt}`
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
         }
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
-  });
+      }),
+    });
+  }
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    const modelName = model === 'openai' ? 'OpenAI' : 'Gemini';
+    const errorMessage = model === 'openai' 
+      ? errorData.error?.message 
+      : errorData.error?.message || errorData.message;
+    throw new Error(`${modelName} API error: ${errorMessage || 'Unknown error'}`);
   }
 
   const data = await response.json();
-  const workflowJson = data.choices[0]?.message?.content;
+  const workflowJson = model === 'openai' 
+    ? data.choices[0]?.message?.content
+    : data.candidates[0]?.content?.parts[0]?.text;
 
   if (!workflowJson) {
     throw new Error('No workflow generated');

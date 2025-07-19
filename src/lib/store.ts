@@ -39,7 +39,9 @@ interface WorkflowStore {
   isLoading: boolean;
   error: string | null;
   prompt: string;
-  apiKey: string;
+  selectedModel: 'openai' | 'gemini';
+  openaiApiKey: string;
+  geminiApiKey: string;
   
   // Actions
   setWorkflow: (workflow: N8nWorkflow) => void;
@@ -47,7 +49,9 @@ interface WorkflowStore {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setPrompt: (prompt: string) => void;
-  setApiKey: (apiKey: string) => void;
+  setSelectedModel: (model: 'openai' | 'gemini') => void;
+  setOpenaiApiKey: (key: string) => void;
+  setGeminiApiKey: (key: string) => void;
   generateWorkflow: () => Promise<void>;
   exportWorkflow: () => void;
   importWorkflow: (json: string) => void;
@@ -102,7 +106,9 @@ export const useWorkflowStore = create<WorkflowStore>()(
       isLoading: false,
       error: null,
       prompt: "",
-      apiKey: "",
+      selectedModel: 'openai',
+      openaiApiKey: "",
+      geminiApiKey: "",
 
       // Actions
       setWorkflow: (workflow) => {
@@ -123,10 +129,12 @@ export const useWorkflowStore = create<WorkflowStore>()(
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
       setPrompt: (prompt) => set({ prompt }),
-      setApiKey: (apiKey) => set({ apiKey }),
+      setSelectedModel: (selectedModel) => set({ selectedModel }),
+      setOpenaiApiKey: (openaiApiKey) => set({ openaiApiKey }),
+      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
 
       generateWorkflow: async () => {
-        const { prompt, apiKey } = get();
+        const { prompt, selectedModel, openaiApiKey, geminiApiKey } = get();
         if (!prompt.trim()) {
           set({ error: "Please enter a workflow description" });
           return;
@@ -135,7 +143,8 @@ export const useWorkflowStore = create<WorkflowStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          const generatedWorkflow = await generateWorkflow(prompt, apiKey);
+          const apiKey = selectedModel === 'openai' ? openaiApiKey : geminiApiKey;
+          const generatedWorkflow = await generateWorkflow(prompt, selectedModel, apiKey);
           set({ 
             workflow: generatedWorkflow,
             jsonCode: JSON.stringify(generatedWorkflow, null, 2),

@@ -4,6 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useWorkflowStore } from '@/lib/store';
 import { Send, Loader2, Settings2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,8 +22,12 @@ export function PromptInput({ className }: PromptInputProps) {
     generateWorkflow, 
     isLoading, 
     error,
-    apiKey,
-    setApiKey 
+    selectedModel,
+    setSelectedModel,
+    openaiApiKey,
+    setOpenaiApiKey,
+    geminiApiKey,
+    setGeminiApiKey 
   } = useWorkflowStore();
   
   const [showSettings, setShowSettings] = useState(false);
@@ -57,23 +62,57 @@ export function PromptInput({ className }: PromptInputProps) {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-4">
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="apiKey" className="text-sm font-medium">
-                      OpenAI API Key (optional)
-                    </Label>
-                    <Input
-                      id="apiKey"
-                      type="password"
-                      placeholder="sk-..."
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      className="bg-editor-background border-editor-border"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Leave empty to use default API key. Required for custom deployments.
-                    </p>
+                    <Label className="text-sm font-medium">AI Model</Label>
+                    <Select value={selectedModel} onValueChange={(value: 'openai' | 'gemini') => setSelectedModel(value)}>
+                      <SelectTrigger className="bg-editor-background border-editor-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="openai">OpenAI GPT-4</SelectItem>
+                        <SelectItem value="gemini">Google Gemini</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                  
+                  {selectedModel === 'openai' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="openaiKey" className="text-sm font-medium">
+                        OpenAI API Key
+                      </Label>
+                      <Input
+                        id="openaiKey"
+                        type="password"
+                        placeholder="sk-..."
+                        value={openaiApiKey}
+                        onChange={(e) => setOpenaiApiKey(e.target.value)}
+                        className="bg-editor-background border-editor-border"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Get your API key from platform.openai.com
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedModel === 'gemini' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="geminiKey" className="text-sm font-medium">
+                        Gemini API Key
+                      </Label>
+                      <Input
+                        id="geminiKey"
+                        type="password"
+                        placeholder="AI..."
+                        value={geminiApiKey}
+                        onChange={(e) => setGeminiApiKey(e.target.value)}
+                        className="bg-editor-background border-editor-border"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Get your API key from aistudio.google.com
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CollapsibleContent>
             </Collapsible>
