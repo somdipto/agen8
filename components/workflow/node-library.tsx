@@ -67,7 +67,7 @@ export function NodeLibrary() {
   };
 
   return (
-    <Card className="h-full w-64 border-r">
+    <Card className="h-full w-64 rounded-none border-t-0 border-r border-b-0 border-l-0">
       <CardHeader>
         <CardTitle className="text-lg">Node Library</CardTitle>
       </CardHeader>

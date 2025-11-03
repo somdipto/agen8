@@ -23,6 +23,7 @@ export const selectedNodeAtom = atom<string | null>(null);
 export const isExecutingAtom = atom(false);
 export const isLoadingAtom = atom(false);
 export const currentWorkflowIdAtom = atom<string | null>(null);
+export const currentWorkflowNameAtom = atom<string>('Untitled');
 
 // Derived atoms for node/edge operations with auto-save
 export const onNodesChangeAtom = atom(null, (get, set, changes: NodeChange[]) => {
@@ -32,7 +33,11 @@ export const onNodesChangeAtom = atom(null, (get, set, changes: NodeChange[]) =>
 
   // Auto-save to database
   const currentEdges = get(edgesAtom);
-  workflowApi.autoSaveCurrent(newNodes, currentEdges);
+  const workflowId = get(currentWorkflowIdAtom);
+
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, { nodes: newNodes, edges: currentEdges });
+  }
 });
 
 export const onEdgesChangeAtom = atom(null, (get, set, changes: EdgeChange[]) => {
@@ -42,7 +47,11 @@ export const onEdgesChangeAtom = atom(null, (get, set, changes: EdgeChange[]) =>
 
   // Auto-save to database
   const currentNodes = get(nodesAtom);
-  workflowApi.autoSaveCurrent(currentNodes, newEdges);
+  const workflowId = get(currentWorkflowIdAtom);
+
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, { nodes: currentNodes, edges: newEdges });
+  }
 });
 
 export const addNodeAtom = atom(null, (get, set, node: WorkflowNode) => {
@@ -52,7 +61,11 @@ export const addNodeAtom = atom(null, (get, set, node: WorkflowNode) => {
 
   // Auto-save to database
   const currentEdges = get(edgesAtom);
-  workflowApi.autoSaveCurrent(newNodes, currentEdges);
+  const workflowId = get(currentWorkflowIdAtom);
+
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, { nodes: newNodes, edges: currentEdges });
+  }
 });
 
 export const updateNodeDataAtom = atom(
@@ -66,7 +79,11 @@ export const updateNodeDataAtom = atom(
 
     // Auto-save to database
     const currentEdges = get(edgesAtom);
-    workflowApi.autoSaveCurrent(newNodes, currentEdges);
+    const workflowId = get(currentWorkflowIdAtom);
+
+    if (workflowId) {
+      workflowApi.autoSaveWorkflow(workflowId, { nodes: newNodes, edges: currentEdges });
+    }
   }
 );
 
@@ -85,16 +102,22 @@ export const deleteNodeAtom = atom(null, (get, set, nodeId: string) => {
   }
 
   // Auto-save to database
-  workflowApi.autoSaveCurrent(newNodes, newEdges);
+  const workflowId = get(currentWorkflowIdAtom);
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, { nodes: newNodes, edges: newEdges });
+  }
 });
 
-export const clearWorkflowAtom = atom(null, (_get, set) => {
+export const clearWorkflowAtom = atom(null, (get, set) => {
   set(nodesAtom, []);
   set(edgesAtom, []);
   set(selectedNodeAtom, null);
 
   // Auto-save to database
-  workflowApi.autoSaveCurrent([], []);
+  const workflowId = get(currentWorkflowIdAtom);
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, { nodes: [], edges: [] });
+  }
 });
 
 // Load workflow from database

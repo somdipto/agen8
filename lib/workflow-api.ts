@@ -10,6 +10,7 @@ export interface WorkflowData {
 
 export interface SavedWorkflow extends WorkflowData {
   id: string;
+  name: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,7 +52,7 @@ export const workflowApi = {
   },
 
   // Update a workflow
-  async update(id: string, workflow: WorkflowData): Promise<SavedWorkflow> {
+  async update(id: string, workflow: Partial<WorkflowData>): Promise<SavedWorkflow> {
     const response = await fetch(`/api/workflows/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -102,6 +103,27 @@ export const workflowApi = {
 
     autosaveTimeout = setTimeout(() => {
       this.saveCurrent(nodes, edges).catch((error) => {
+        console.error('Auto-save failed:', error);
+      });
+    }, AUTOSAVE_DELAY);
+  },
+
+  // Auto-save specific workflow with debouncing
+  autoSaveWorkflow(
+    id: string,
+    data: Partial<WorkflowData>,
+    debounce: boolean = true
+  ): Promise<SavedWorkflow> | void {
+    if (!debounce) {
+      return this.update(id, data);
+    }
+
+    if (autosaveTimeout) {
+      clearTimeout(autosaveTimeout);
+    }
+
+    autosaveTimeout = setTimeout(() => {
+      this.update(id, data).catch((error) => {
         console.error('Auto-save failed:', error);
       });
     }, AUTOSAVE_DELAY);

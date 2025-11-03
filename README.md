@@ -61,6 +61,7 @@ A powerful, n8n-style workflow automation application built with Next.js, React 
 - **UI Library**: React 19
 - **State Management**: Jotai
 - **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Better Auth
 - **Workflow Engine**: React Flow (@xyflow/react)
 - **Styling**: Tailwind CSS 4
 - **UI Components**: AI Elements + Custom shadcn/ui components
@@ -87,24 +88,37 @@ cd v8-workflow
 pnpm install
 \`\`\`
 
-3. Set up the database:
+3. Set up environment variables:
 \`\`\`bash
-# Create a .env.local file with your database URL
-echo "DATABASE_URL=postgres://localhost:5432/workflow" > .env.local
+# Create a .env.local file
+cat > .env.local << EOF
+DATABASE_URL=postgres://localhost:5432/workflow
+BETTER_AUTH_SECRET=your-secret-key-here
+BETTER_AUTH_URL=http://localhost:3000
 
-# Or use a cloud database (Neon, Supabase, Vercel Postgres, etc.)
-# DATABASE_URL=postgres://user:password@host:port/database
+# Optional: Social auth providers
+# GITHUB_CLIENT_ID=your-github-client-id
+# GITHUB_CLIENT_SECRET=your-github-client-secret
+# GOOGLE_CLIENT_ID=your-google-client-id
+# GOOGLE_CLIENT_SECRET=your-google-client-secret
+EOF
 
+# Generate a secure secret key
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+\`\`\`
+
+4. Set up the database:
+\`\`\`bash
 # Generate and push the database schema
 pnpm db:push
 \`\`\`
 
-4. Run the development server:
+5. Run the development server:
 \`\`\`bash
 pnpm dev
 \`\`\`
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. Open [http://localhost:3000](http://localhost:3000) and create an account
 
 ## Usage
 
@@ -129,6 +143,33 @@ Here's a simple example workflow:
 2. **Action Node** → Make an HTTP request to an API
 3. **Condition Node** → Check if the response was successful
 4. **Transform Node** → Process and format the data
+
+## Authentication
+
+The app uses **Better Auth** for authentication with the following features:
+
+- **Email/Password Authentication**: Users can sign up and sign in with email and password
+- **Session Management**: Secure session handling with token-based authentication
+- **Social Providers** (Optional): GitHub and Google OAuth support
+- **Protected Routes**: All workflow pages require authentication
+- **User-specific Data**: Workflows are scoped to individual users
+
+### Setting Up Social Providers
+
+**GitHub OAuth:**
+1. Go to GitHub Settings > Developer settings > OAuth Apps
+2. Create a new OAuth App
+3. Set Homepage URL to `http://localhost:3000`
+4. Set Authorization callback URL to `http://localhost:3000/api/auth/callback/github`
+5. Copy Client ID and Client Secret to `.env.local`
+
+**Google OAuth:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project and enable Google+ API
+3. Create OAuth 2.0 credentials
+4. Add `http://localhost:3000` to Authorized JavaScript origins
+5. Add `http://localhost:3000/api/auth/callback/google` to Authorized redirect URIs
+6. Copy Client ID and Client Secret to `.env.local`
 
 ## Database Setup
 

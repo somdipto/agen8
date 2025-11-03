@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { workflows } from '@/lib/db/schema';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
 
-// GET /api/workflows - List all workflows
-export async function GET() {
+// GET /api/workflows - List all workflows for the current user
+export async function GET(request: NextRequest) {
   try {
-    const allWorkflows = await db.select().from(workflows).orderBy(desc(workflows.updatedAt));
-    return NextResponse.json(allWorkflows);
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userWorkflows = await db
+      .select()
+      .from(workflows)
+      .where(eq(workflows.userId, session.user.id))
+      .orderBy(desc(workflows.updatedAt));
+
+    return NextResponse.json(userWorkflows);
   } catch (error) {
     console.error('Failed to fetch workflows:', error);
     return NextResponse.json({ error: 'Failed to fetch workflows' }, { status: 500 });
@@ -17,6 +28,11 @@ export async function GET() {
 // POST /api/workflows - Create a new workflow
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { name, description, nodes, edges } = body;
 
@@ -31,6 +47,7 @@ export async function POST(request: NextRequest) {
         description,
         nodes,
         edges,
+        userId: session.user.id,
       })
       .returning();
 

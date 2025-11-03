@@ -23,7 +23,7 @@ export function NodeConfigPanel() {
 
   if (!selectedNode) {
     return (
-      <Card className="h-full w-80 border-l">
+      <Card className="h-full w-80 rounded-none border-t-0 border-r-0 border-b-0 border-l">
         <CardHeader>
           <CardTitle className="text-lg">Properties</CardTitle>
         </CardHeader>
@@ -58,7 +58,7 @@ export function NodeConfigPanel() {
   };
 
   return (
-    <Card className="h-full w-80 border-l">
+    <Card className="h-full w-80 rounded-none border-t-0 border-r-0 border-b-0 border-l">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-lg">Properties</CardTitle>
         <Button variant="ghost" size="icon" onClick={handleClose}>

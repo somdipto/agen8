@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { workflows } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
+import { auth } from '@/lib/auth';
 
 const CURRENT_WORKFLOW_NAME = '__current__';
 
 // GET /api/workflows/current - Get the current workflow state
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const [currentWorkflow] = await db
       .select()
       .from(workflows)
-      .where(eq(workflows.name, CURRENT_WORKFLOW_NAME))
+      .where(and(eq(workflows.name, CURRENT_WORKFLOW_NAME), eq(workflows.userId, session.user.id)))
       .orderBy(desc(workflows.updatedAt))
       .limit(1);
 
@@ -37,6 +43,11 @@ export async function GET() {
 // PUT /api/workflows/current - Save the current workflow state
 export async function PUT(request: NextRequest) {
   try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { nodes, edges } = body;
 
@@ -48,7 +59,7 @@ export async function PUT(request: NextRequest) {
     const [existingWorkflow] = await db
       .select()
       .from(workflows)
-      .where(eq(workflows.name, CURRENT_WORKFLOW_NAME))
+      .where(and(eq(workflows.name, CURRENT_WORKFLOW_NAME), eq(workflows.userId, session.user.id)))
       .limit(1);
 
     let savedWorkflow;
@@ -73,6 +84,7 @@ export async function PUT(request: NextRequest) {
           description: 'Auto-saved current workflow',
           nodes,
           edges,
+          userId: session.user.id,
         })
         .returning();
     }
