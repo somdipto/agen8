@@ -38,10 +38,10 @@ A powerful, n8n-style workflow automation application built with Next.js, React 
 ### 💾 **Workflow Management**
 - **Database Persistence**: Workflows stored in PostgreSQL with Drizzle ORM
 - **Auto-save**: Changes automatically saved to database (2-second debounce)
-- **Save As**: Create named workflow versions
-- **Export**: Download workflows as JSON files
-- **Import**: Load workflows from JSON files
-- **Clear**: Reset the entire workflow
+- **AI Generation**: Describe your workflow in plain English and let AI create it
+- **Inline Renaming**: Edit workflow names directly in the editor
+- **Workflow List**: View and manage all your workflows
+- **Delete & Clear**: Remove or reset workflows with confirmation dialogs
 
 ### ⚡ **Execution Engine**
 - Sequential workflow execution
@@ -92,9 +92,21 @@ pnpm install
 \`\`\`bash
 # Create a .env.local file
 cat > .env.local << EOF
+# Database
 DATABASE_URL=postgres://localhost:5432/workflow
+
+# Authentication
 BETTER_AUTH_SECRET=your-secret-key-here
 BETTER_AUTH_URL=http://localhost:3000
+
+# AI Workflow Generation (required)
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# Optional: Use AI Gateway base URL (for caching/monitoring)
+# AI_BASE_URL=https://gateway.ai.cloudflare.com/v1/ACCOUNT/GATEWAY
+
+# Optional: Specify model (default: openai/gpt-4o-mini)
+# AI_MODEL=openai/gpt-4o-mini
 
 # Optional: Social auth providers
 # GITHUB_CLIENT_ID=your-github-client-id
@@ -143,6 +155,52 @@ Here's a simple example workflow:
 2. **Action Node** → Make an HTTP request to an API
 3. **Condition Node** → Check if the response was successful
 4. **Transform Node** → Process and format the data
+
+## AI Workflow Generation
+
+The app uses **Vercel AI Gateway** to generate workflows from natural language descriptions:
+
+### Features
+- **Natural Language Input**: Describe your workflow in plain English
+- **Automatic Node Creation**: AI generates appropriate trigger, action, condition, and transform nodes
+- **Smart Positioning**: Nodes are automatically positioned in a logical flow
+- **Instant Creation**: Generated workflows are saved to the database immediately
+
+### Setup
+
+**Option 1: Direct OpenAI (Simplest)**
+1. Get an OpenAI API key from [platform.openai.com](https://platform.openai.com/api-keys)
+2. Add to `.env.local`:
+```bash
+OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+**Option 2: Vercel AI Gateway (Optional - for caching/monitoring)**
+1. Visit [Vercel AI Gateway](https://vercel.com/docs/ai-gateway)
+2. Create a new gateway in your Vercel dashboard
+3. Get your gateway base URL
+4. Add to `.env.local`:
+```bash
+OPENAI_API_KEY=sk-your-openai-api-key
+AI_BASE_URL=https://gateway.vercel.com/v1/YOUR_GATEWAY
+AI_MODEL=openai/gpt-4o-mini
+```
+
+**Option 3: Cloudflare AI Gateway (Optional - for caching/monitoring)**
+1. Visit [Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/)
+2. Create a gateway in Cloudflare dashboard
+3. Get your account ID and gateway slug
+4. Add to `.env.local`:
+```bash
+OPENAI_API_KEY=sk-your-openai-api-key
+AI_BASE_URL=https://gateway.ai.cloudflare.com/v1/YOUR_ACCOUNT/YOUR_GATEWAY
+AI_MODEL=openai/gpt-4o-mini
+```
+
+### Example Prompts
+- "Create a workflow that fetches user data from an API and sends welcome emails"
+- "Build a workflow to process webhooks and store data in a database"
+- "Make a workflow that validates form submissions and sends notifications"
 
 ## Authentication
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Clock, FileText } from 'lucide-react';
 import { workflowApi, type SavedWorkflow } from '@/lib/workflow-api';
 import { UserMenu } from './user-menu';
+import { WorkflowPrompt } from './workflow-prompt';
 
 export function WorkflowsList() {
   const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
@@ -71,19 +72,29 @@ export function WorkflowsList() {
             <UserMenu />
           </div>
         </header>
-        <div className="flex flex-1 items-center justify-center p-4">
-          <div className="text-center">
-            <div className="mb-8">
-              <FileText className="text-muted-foreground mx-auto h-24 w-24" />
+        <div className="flex flex-1 items-center justify-center p-8">
+          <div className="w-full max-w-2xl">
+            <div className="mb-12 text-center">
+              <h2 className="mb-4 text-4xl font-bold">Workflow Builder</h2>
+              <p className="text-muted-foreground text-lg">
+                Create automated workflows with AI or from scratch
+              </p>
             </div>
-            <h2 className="mb-2 text-3xl font-bold">Welcome to Workflow Builder</h2>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Create your first workflow to get started
-            </p>
-            <Button onClick={handleNewWorkflow} size="lg">
-              <Plus className="mr-2 h-5 w-5" />
-              Create New Workflow
-            </Button>
+
+            <WorkflowPrompt />
+
+            <div className="my-6 flex items-center gap-4">
+              <div className="bg-border h-px flex-1"></div>
+              <span className="text-muted-foreground text-xs">or</span>
+              <div className="bg-border h-px flex-1"></div>
+            </div>
+
+            <div className="flex justify-center">
+              <Button onClick={handleNewWorkflow} variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Start from Scratch
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -101,14 +112,18 @@ export function WorkflowsList() {
       </header>
       <div className="p-8">
         <div className="mx-auto max-w-6xl">
+          <div className="mb-8">
+            <WorkflowPrompt />
+          </div>
+
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold">Your Workflows</h2>
-              <p className="text-muted-foreground mt-1">
-                Manage and organize your workflow automations
+              <h2 className="text-2xl font-bold">Recent Workflows</h2>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {workflows.length} workflow{workflows.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <Button onClick={handleNewWorkflow}>
+            <Button onClick={handleNewWorkflow} variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               New Workflow
             </Button>

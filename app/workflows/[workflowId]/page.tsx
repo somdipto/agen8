@@ -3,7 +3,7 @@
 import { use, useEffect } from 'react';
 import { Provider, useSetAtom, useAtom } from 'jotai';
 import { WorkflowCanvas } from '@/components/workflow/workflow-canvas';
-import { NodeLibrary } from '@/components/workflow/node-library';
+import { NodeToolbar } from '@/components/workflow/node-toolbar';
 import { NodeConfigPanel } from '@/components/workflow/node-config-panel';
 import { WorkflowToolbar } from '@/components/workflow/workflow-toolbar';
 import {
@@ -58,7 +58,7 @@ function WorkflowEditor({ params }: { params: Promise<{ workflowId: string }> })
     <div className="flex h-screen flex-col overflow-hidden">
       <WorkflowToolbar workflowId={workflowId} />
       <div className="flex flex-1 overflow-hidden">
-        <NodeLibrary />
+        <NodeToolbar />
         <main className="flex-1 overflow-hidden">
           <WorkflowCanvas />
         </main>
