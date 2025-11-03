@@ -26,7 +26,6 @@ import {
   canUndoAtom,
   canRedoAtom,
 } from '@/lib/workflow-store';
-import { executeWorkflow } from '@/lib/workflow-executor';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,10 +64,54 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const [canRedo] = useAtom(canRedoAtom);
 
   const handleExecute = async () => {
+    if (!currentWorkflowId) {
+      toast.error('Please save the workflow before executing');
+      return;
+    }
+
     setIsExecuting(true);
+
+    // Set all nodes to idle first
+    nodes.forEach((node) => {
+      updateNodeData({ id: node.id, data: { status: 'idle' } });
+    });
+
     try {
-      await executeWorkflow(nodes, edges, (nodeId, status) => {
-        updateNodeData({ id: nodeId, data: { status } });
+      // Call the server API to execute the workflow
+      const response = await fetch(`/api/workflows/${currentWorkflowId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: {} }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to execute workflow');
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'error') {
+        toast.error(result.error || 'Workflow execution failed');
+      } else {
+        toast.success('Workflow executed successfully');
+      }
+
+      // Update all nodes to success (in production, we'd stream status updates)
+      // For now, just mark them all as success or check the result
+      nodes.forEach((node) => {
+        updateNodeData({
+          id: node.id,
+          data: { status: result.status === 'error' ? 'error' : 'success' },
+        });
+      });
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to execute workflow');
+
+      // Mark all nodes as error
+      nodes.forEach((node) => {
+        updateNodeData({ id: node.id, data: { status: 'error' } });
       });
     } finally {
       setIsExecuting(false);

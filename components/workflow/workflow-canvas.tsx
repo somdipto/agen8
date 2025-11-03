@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useAtom, useSetAtom } from 'jotai';
 import {
   ReactFlow,
@@ -83,11 +83,6 @@ export function WorkflowCanvas() {
   const connectingNodeId = useRef<string | null>(null);
   const menuJustOpened = useRef(false);
 
-  // Debug: Track menu state changes
-  useEffect(() => {
-    console.log('📋 Menu state changed:', menu);
-  }, [menu]);
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const nodeTypes = useMemo<Record<string, React.ComponentType<any>>>(
     () => ({
@@ -122,7 +117,6 @@ export function WorkflowCanvas() {
   const onConnectStart = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (_event: any, { nodeId }: { nodeId: string | null }) => {
-      console.log('🔵 onConnectStart - nodeId:', nodeId);
       connectingNodeId.current = nodeId;
     },
     []
@@ -130,23 +124,15 @@ export function WorkflowCanvas() {
 
   const onConnectEnd = useCallback(
     (event: MouseEvent | TouchEvent) => {
-      console.log('🟢 onConnectEnd - connectingNodeId:', connectingNodeId.current);
-
       if (!connectingNodeId.current) {
-        console.log('⚠️ No connecting node, returning early');
         return;
       }
 
       const target = event.target as Element;
-      console.log('🎯 Target element:', target);
-      console.log('🎯 Target classList:', target.classList);
 
       // Check if we're not dropping on a node or handle
       const isNode = target.closest('.react-flow__node');
       const isHandle = target.closest('.react-flow__handle');
-
-      console.log('📍 Is node?', !!isNode);
-      console.log('📍 Is handle?', !!isHandle);
 
       if (!isNode && !isHandle) {
         // Get mouse position relative to the viewport
@@ -162,7 +148,6 @@ export function WorkflowCanvas() {
         const adjustedX = reactFlowBounds ? clientX - reactFlowBounds.left : clientX;
         const adjustedY = reactFlowBounds ? clientY - reactFlowBounds.top : clientY;
 
-        console.log('✅ Showing menu at:', { clientX, clientY, adjustedX, adjustedY });
         menuJustOpened.current = true;
         setMenu({
           id: connectingNodeId.current,
@@ -174,8 +159,6 @@ export function WorkflowCanvas() {
         setTimeout(() => {
           menuJustOpened.current = false;
         }, 100);
-      } else {
-        console.log('❌ Not showing menu - dropped on node or handle');
       }
 
       // Reset the connecting node
@@ -225,15 +208,11 @@ export function WorkflowCanvas() {
   );
 
   const onPaneClick = useCallback(() => {
-    console.log('🔴 onPaneClick - menuJustOpened:', menuJustOpened.current);
-
     // Don't close the menu if it was just opened from a connection
     if (menuJustOpened.current) {
-      console.log('⏸️ Skipping menu close - menu was just opened');
       return;
     }
 
-    console.log('✅ Closing menu');
     setMenu(null);
   }, []);
 

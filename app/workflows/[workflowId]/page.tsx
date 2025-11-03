@@ -20,7 +20,6 @@ import {
 } from '@/lib/workflow-store';
 import { AuthProvider } from '@/components/auth/auth-provider';
 import { workflowApi } from '@/lib/workflow-api';
-import { executeWorkflow } from '@/lib/workflow-executor';
 
 function WorkflowEditor({ params }: { params: Promise<{ workflowId: string }> }) {
   const { workflowId } = use(params);
@@ -126,16 +125,48 @@ function WorkflowEditor({ params }: { params: Promise<{ workflowId: string }> })
   }, [currentWorkflowId, nodes, edges, isGenerating]);
 
   const handleRun = useCallback(async () => {
-    if (isExecuting || nodes.length === 0 || isGenerating) return;
+    if (isExecuting || nodes.length === 0 || isGenerating || !currentWorkflowId) return;
+
     setIsExecuting(true);
+
+    // Set all nodes to idle first
+    nodes.forEach((node) => {
+      updateNodeData({ id: node.id, data: { status: 'idle' } });
+    });
+
     try {
-      await executeWorkflow(nodes, edges, (nodeId, status) => {
-        updateNodeData({ id: nodeId, data: { status } });
+      // Call the server API to execute the workflow
+      const response = await fetch(`/api/workflows/${currentWorkflowId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: {} }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to execute workflow');
+      }
+
+      const result = await response.json();
+
+      // Update all nodes based on result
+      nodes.forEach((node) => {
+        updateNodeData({
+          id: node.id,
+          data: { status: result.status === 'error' ? 'error' : 'success' },
+        });
+      });
+    } catch (error) {
+      console.error('Failed to execute workflow:', error);
+
+      // Mark all nodes as error
+      nodes.forEach((node) => {
+        updateNodeData({ id: node.id, data: { status: 'error' } });
       });
     } finally {
       setIsExecuting(false);
     }
-  }, [isExecuting, nodes, edges, isGenerating, setIsExecuting, updateNodeData]);
+  }, [isExecuting, nodes, isGenerating, currentWorkflowId, setIsExecuting, updateNodeData]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

@@ -2,7 +2,7 @@ import 'server-only';
 
 import type { WorkflowNode, WorkflowEdge } from './workflow-store';
 import { sendEmail } from './integrations/resend';
-import { createTicket } from './integrations/linear';
+import { createTicket, findIssues } from './integrations/linear';
 import { sendSlackMessage } from './integrations/slack';
 import { queryData } from './integrations/database';
 import { callApi } from './integrations/api';
@@ -142,14 +142,17 @@ class ServerWorkflowExecutor {
               };
             } else {
               const emailParams = {
-                to: (this.context.input?.email as string) || 'user@example.com',
-                subject: (this.context.input?.subject as string) || 'Notification',
-                body: (this.context.input?.body as string) || 'No content',
+                to: (node.data.config?.emailTo as string) || 'user@example.com',
+                subject: (node.data.config?.emailSubject as string) || 'Notification',
+                body: (node.data.config?.emailBody as string) || 'No content',
                 apiKey: this.userIntegrations.resendApiKey,
                 fromEmail: this.userIntegrations.resendFromEmail || undefined,
               };
               const emailResult = await sendEmail(emailParams);
               result = { success: emailResult.status === 'success', data: emailResult };
+              if (emailResult.status === 'error') {
+                result.error = emailResult.error;
+              }
             }
           } else if (
             actionType === 'Send Slack Message' ||
@@ -162,12 +165,15 @@ class ServerWorkflowExecutor {
               };
             } else {
               const slackParams = {
-                channel: (this.context.input?.channel as string) || '#general',
-                text: (this.context.input?.message as string) || 'No message',
+                channel: (node.data.config?.slackChannel as string) || '#general',
+                text: (node.data.config?.slackMessage as string) || 'No message',
                 apiKey: this.userIntegrations.slackApiKey,
               };
               const slackResult = await sendSlackMessage(slackParams);
               result = { success: slackResult.status === 'success', data: slackResult };
+              if (slackResult.status === 'error') {
+                result.error = slackResult.error;
+              }
             }
           } else if (
             actionType === 'Create Ticket' ||
@@ -180,12 +186,38 @@ class ServerWorkflowExecutor {
               };
             } else {
               const ticketParams = {
-                title: (this.context.input?.title as string) || 'New Ticket',
-                description: (this.context.input?.description as string) || '',
+                title: (node.data.config?.ticketTitle as string) || 'New Ticket',
+                description: (node.data.config?.ticketDescription as string) || '',
+                priority: node.data.config?.ticketPriority
+                  ? parseInt(node.data.config.ticketPriority as string)
+                  : undefined,
                 apiKey: this.userIntegrations.linearApiKey,
               };
               const ticketResult = await createTicket(ticketParams);
               result = { success: ticketResult.status === 'success', data: ticketResult };
+              if (ticketResult.status === 'error') {
+                result.error = ticketResult.error;
+              }
+            }
+          } else if (actionType === 'Find Issues') {
+            if (!this.userIntegrations.linearApiKey) {
+              result = {
+                success: false,
+                error: 'Linear API key not configured. Please configure in settings.',
+              };
+            } else {
+              const findParams = {
+                assigneeId: node.data.config?.linearAssigneeId as string | undefined,
+                teamId: node.data.config?.linearTeamId as string | undefined,
+                status: node.data.config?.linearStatus as string | undefined,
+                label: node.data.config?.linearLabel as string | undefined,
+                apiKey: this.userIntegrations.linearApiKey,
+              };
+              const findResult = await findIssues(findParams);
+              result = { success: findResult.status === 'success', data: findResult };
+              if (findResult.status === 'error') {
+                result.error = findResult.error;
+              }
             }
           } else if (
             actionType === 'Database Query' ||
@@ -194,12 +226,24 @@ class ServerWorkflowExecutor {
             const dbResult = await queryData('your_table', {});
             result = { success: dbResult.status === 'success', data: dbResult };
           } else if (actionType === 'HTTP Request' || endpoint) {
+            const httpMethod = (node.data.config?.httpMethod as string) || 'POST';
+            const httpHeaders = node.data.config?.httpHeaders
+              ? JSON.parse((node.data.config.httpHeaders as string) || '{}')
+              : {};
+            const httpBody = node.data.config?.httpBody
+              ? JSON.parse((node.data.config.httpBody as string) || '{}')
+              : this.context.input;
+
             const apiResult = await callApi({
               url: endpoint || 'https://api.example.com/endpoint',
-              method: 'POST',
-              body: this.context.input,
+              method: httpMethod as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+              headers: httpHeaders,
+              body: httpBody,
             });
             result = { success: apiResult.status === 'success', data: apiResult };
+            if (apiResult.status === 'error') {
+              result.error = apiResult.error;
+            }
           } else {
             result = {
               success: true,

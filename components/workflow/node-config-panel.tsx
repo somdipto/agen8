@@ -27,7 +27,7 @@ export function NodeConfigPanel() {
 
   if (!selectedNode) {
     return (
-      <Card className="h-full w-80 rounded-none border-t-0 border-r-0 border-b-0 border-l">
+      <Card className="flex h-full w-80 flex-col rounded-none border-t-0 border-r-0 border-b-0 border-l">
         <CardHeader>
           <CardTitle className="text-lg">Properties</CardTitle>
         </CardHeader>
@@ -62,14 +62,14 @@ export function NodeConfigPanel() {
   };
 
   return (
-    <Card className="h-full w-80 rounded-none border-t-0 border-r-0 border-b-0 border-l">
+    <Card className="flex h-full w-80 flex-col rounded-none border-t-0 border-r-0 border-b-0 border-l">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-lg">Properties</CardTitle>
         <Button variant="ghost" size="icon" onClick={handleClose}>
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex-1 space-y-4 overflow-y-auto">
         <div className="space-y-2">
           <Label htmlFor="label">Label</Label>
           <Input

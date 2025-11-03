@@ -356,12 +356,12 @@ export default function SettingsPage() {
                   <p className="text-muted-foreground text-sm">
                     Get your API key from{' '}
                     <a
-                      href="https://linear.app/settings/api"
+                      href="https://linear.app/settings/account/security/api-keys/new"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
                     >
-                      linear.app/settings/api
+                      Linear API Settings
                     </a>
                   </p>
                 </div>

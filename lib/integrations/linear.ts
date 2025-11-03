@@ -150,3 +150,82 @@ export async function updateTicket(
     };
   }
 }
+
+export interface FindIssuesParams {
+  assigneeId?: string;
+  teamId?: string;
+  status?: string;
+  label?: string;
+  apiKey: string;
+}
+
+export interface FindIssuesResult {
+  status: 'success' | 'error';
+  issues?: Array<{
+    id: string;
+    title: string;
+    identifier: string;
+    url: string;
+    state: string;
+  }>;
+  error?: string;
+}
+
+/**
+ * Find issues in Linear
+ */
+export async function findIssues(params: FindIssuesParams): Promise<FindIssuesResult> {
+  try {
+    if (!params.apiKey) {
+      return {
+        status: 'error',
+        error: 'Linear API key not configured',
+      };
+    }
+
+    const client = new LinearClient({ apiKey: params.apiKey });
+
+    // Build filter object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filter: any = {};
+
+    if (params.assigneeId) {
+      filter.assignee = { id: { eq: params.assigneeId } };
+    }
+
+    if (params.teamId) {
+      filter.team = { id: { eq: params.teamId } };
+    }
+
+    if (params.status && params.status !== 'any') {
+      filter.state = { name: { eq: params.status } };
+    }
+
+    // Query issues with filters
+    const issues = await client.issues(filter);
+    const issueNodes = await issues.nodes;
+
+    const formattedIssues = await Promise.all(
+      issueNodes.map(async (issue) => {
+        const state = await issue.state;
+        return {
+          id: issue.id,
+          title: issue.title,
+          identifier: issue.identifier,
+          url: issue.url,
+          state: state?.name || 'Unknown',
+        };
+      })
+    );
+
+    return {
+      status: 'success',
+      issues: formattedIssues,
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
