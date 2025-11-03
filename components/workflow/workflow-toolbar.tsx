@@ -1,19 +1,9 @@
 'use client';
 
 import { useAtom, useSetAtom } from 'jotai';
-import {
-  Play,
-  Save,
-  LogOut,
-  Moon,
-  Sun,
-  ArrowLeft,
-  Pencil,
-  MoreVertical,
-  Trash2,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Play, Save, MoreVertical, Trash2, Pencil } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -26,22 +16,12 @@ import {
   currentWorkflowNameAtom,
 } from '@/lib/workflow-store';
 import { executeWorkflow } from '@/lib/workflow-executor';
-import { useSession, signOut } from '@/lib/auth-client';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { useTheme } from 'next-themes';
 import { workflowApi } from '@/lib/workflow-api';
 import {
   Dialog,
@@ -51,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { AppHeader } from '@/components/app-header';
 
 export function WorkflowToolbar({}: { workflowId?: string }) {
   const [nodes] = useAtom(nodesAtom);
@@ -60,8 +41,6 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const updateNodeData = useSetAtom(updateNodeDataAtom);
   const [currentWorkflowId] = useAtom(currentWorkflowIdAtom);
   const [workflowName, setWorkflowName] = useAtom(currentWorkflowNameAtom);
-  const { data: session } = useSession();
-  const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState(workflowName);
@@ -142,150 +121,79 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut();
-  };
+  const titleElement = isEditing ? (
+    <Input
+      value={editingName}
+      onChange={(e) => setEditingName(e.target.value)}
+      onBlur={handleSaveWorkflowName}
+      onKeyDown={handleKeyDown}
+      className="h-8 w-64"
+      autoFocus
+    />
+  ) : (
+    <div className="group flex items-center gap-2">
+      <span className="text-xl font-semibold">{workflowName}</span>
+      {currentWorkflowId && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+          onClick={handleStartEdit}
+          title="Rename workflow"
+        >
+          <Pencil className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  );
 
-  const getUserInitials = () => {
-    if (session?.user?.name) {
-      return session.user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    if (session?.user?.email) {
-      return session.user.email.slice(0, 2).toUpperCase();
-    }
-    return 'U';
-  };
+  const actions = (
+    <>
+      <Button
+        onClick={handleExecute}
+        disabled={isExecuting || nodes.length === 0}
+        variant="ghost"
+        size="icon"
+        title={isExecuting ? 'Running...' : 'Run workflow'}
+      >
+        <Play className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={handleSave}
+        variant="ghost"
+        size="icon"
+        disabled={!currentWorkflowId}
+        title="Save workflow"
+      >
+        <Save className="h-4 w-4" />
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" title="More options">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setShowClearDialog(true)} disabled={nodes.length === 0}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>Clear Workflow</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={!currentWorkflowId}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>Delete Workflow</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  );
 
   return (
-    <div className="bg-background flex items-center justify-between border-b px-4 py-3">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.push('/')}
-          title="Back to workflows"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        {isEditing ? (
-          <Input
-            value={editingName}
-            onChange={(e) => setEditingName(e.target.value)}
-            onBlur={handleSaveWorkflowName}
-            onKeyDown={handleKeyDown}
-            className="h-8 w-64"
-            autoFocus
-          />
-        ) : (
-          <div className="group flex items-center gap-2">
-            <h1 className="text-xl font-semibold">{workflowName}</h1>
-            {currentWorkflowId && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-                onClick={handleStartEdit}
-                title="Rename workflow"
-              >
-                <Pencil className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="flex items-center gap-1">
-        <Button
-          onClick={handleExecute}
-          disabled={isExecuting || nodes.length === 0}
-          variant="ghost"
-          size="icon"
-          title={isExecuting ? 'Running...' : 'Run workflow'}
-        >
-          <Play className="h-4 w-4" />
-        </Button>
-        <Button
-          onClick={handleSave}
-          variant="ghost"
-          size="icon"
-          disabled={!currentWorkflowId}
-          title="Save workflow"
-        >
-          <Save className="h-4 w-4" />
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" title="More options">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => setShowClearDialog(true)}
-              disabled={nodes.length === 0}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              <span>Clear Workflow</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={!currentWorkflowId}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              <span>Delete Workflow</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <div className="ml-2 border-l pl-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={session?.user?.image || ''} alt={session?.user?.name || ''} />
-                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm leading-none font-medium">
-                    {session?.user?.name || 'User'}
-                  </p>
-                  <p className="text-muted-foreground text-xs leading-none">
-                    {session?.user?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Sun className="mr-2 h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-                  <Moon className="absolute mr-2 h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-                  <span>Theme</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                    <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+    <>
+      <AppHeader title={titleElement} showBackButton actions={actions} />
 
       {/* Clear Workflow Dialog */}
       <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
@@ -328,6 +236,6 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Plus, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Plus, Clock, FileText } from 'lucide-react';
 import { workflowApi, type SavedWorkflow } from '@/lib/workflow-api';
-import { UserMenu } from './user-menu';
 import { WorkflowPrompt } from './workflow-prompt';
+import { AppHeader } from '@/components/app-header';
+import { getRelativeTime } from '@/lib/utils/time';
 
 export function WorkflowsList() {
   const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
@@ -62,103 +62,92 @@ export function WorkflowsList() {
     );
   }
 
-  // Starter screen when no workflows
-  if (workflows.length === 0) {
-    return (
-      <div className="bg-background flex min-h-screen flex-col">
-        <header className="border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold">Workflow Builder</h1>
-            <UserMenu />
+  return (
+    <div className="bg-background flex min-h-screen flex-col">
+      <AppHeader />
+      <div className="flex flex-1 flex-col items-center justify-center p-8">
+        <div className="w-full max-w-2xl">
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-4xl font-bold">Workflow Builder Template</h1>
+            <p className="text-muted-foreground text-sm">
+              Powered by{' '}
+              <a
+                href="https://useworkflow.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:no-underline"
+              >
+                Workflow
+              </a>
+              ,{' '}
+              <a
+                href="https://ai-sdk.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:no-underline"
+              >
+                AI SDK
+              </a>
+              ,{' '}
+              <a
+                href="https://vercel.com/ai-gateway"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:no-underline"
+              >
+                AI Gateway
+              </a>
+              , and{' '}
+              <a
+                href="https://ai-sdk.dev/elements"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:no-underline"
+              >
+                AI Elements
+              </a>
+            </p>
           </div>
-        </header>
-        <div className="flex flex-1 items-center justify-center p-8">
-          <div className="w-full max-w-2xl">
-            <div className="mb-12 text-center">
-              <h2 className="mb-4 text-4xl font-bold">Workflow Builder</h2>
-              <p className="text-muted-foreground text-lg">
-                Create automated workflows with AI or from scratch
-              </p>
-            </div>
-
-            <WorkflowPrompt />
-
-            <div className="my-6 flex items-center gap-4">
-              <div className="bg-border h-px flex-1"></div>
-              <span className="text-muted-foreground text-xs">or</span>
-              <div className="bg-border h-px flex-1"></div>
-            </div>
-
-            <div className="flex justify-center">
-              <Button onClick={handleNewWorkflow} variant="outline">
-                <Plus className="mr-2 h-4 w-4" />
-                Start from Scratch
-              </Button>
-            </div>
-          </div>
+          <WorkflowPrompt />
         </div>
       </div>
-    );
-  }
 
-  // Workflows list
-  return (
-    <div className="bg-background min-h-screen">
-      <header className="border-b px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <h1 className="text-xl font-semibold">Workflow Builder</h1>
-          <UserMenu />
-        </div>
-      </header>
       <div className="p-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8">
-            <WorkflowPrompt />
-          </div>
-
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Recent Workflows</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                {workflows.length} workflow{workflows.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <Button onClick={handleNewWorkflow} variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              New Workflow
+        <div className="mx-auto w-full max-w-2xl">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-muted-foreground text-sm font-medium">
+              {workflows.length === 0 ? 'No Workflows' : 'Recent'}
+            </h2>
+            <Button variant="outline" size="sm" onClick={handleNewWorkflow}>
+              <Plus className="mr-2 h-3 w-3" />
+              Start from Scratch
             </Button>
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {workflows.map((workflow) => (
-              <Card
-                key={workflow.id}
-                className="cursor-pointer transition-all hover:shadow-lg"
-                onClick={() => handleOpenWorkflow(workflow.id)}
-              >
-                <CardHeader>
-                  <CardTitle>{workflow.name}</CardTitle>
-                  {workflow.description && (
-                    <CardDescription>{workflow.description}</CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="text-muted-foreground flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      <FileText className="h-4 w-4" />
-                      <span>
-                        {workflow.nodes.length} node{workflow.nodes.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{new Date(workflow.updatedAt).toLocaleDateString()}</span>
+          {workflows.length > 0 && (
+            <div className="divide-y">
+              {/* User's workflows */}
+              {workflows.map((workflow) => (
+                <button
+                  key={workflow.id}
+                  className="hover:bg-accent/50 flex w-full cursor-pointer flex-col px-4 py-4 text-left transition-colors"
+                  onClick={() => handleOpenWorkflow(workflow.id)}
+                >
+                  <div className="mb-1 flex items-center justify-between gap-4">
+                    <div className="min-w-0 truncate font-medium">{workflow.name}</div>
+                    <div className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+                      <Clock className="h-3 w-3" />
+                      <span>{getRelativeTime(workflow.updatedAt)}</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  {workflow.description && (
+                    <div className="text-muted-foreground line-clamp-1 text-sm">
+                      {workflow.description}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
