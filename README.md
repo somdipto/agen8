@@ -1,355 +1,226 @@
-# Workflow Builder
+# V8 Workflow Builder
 
-A powerful, n8n-style workflow automation application built with Next.js, React Flow, and Jotai.
-
-![Workflow Builder](https://img.shields.io/badge/Next.js-16.0-black)
-![React](https://img.shields.io/badge/React-19.2-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
+A powerful visual workflow builder with real integrations and code generation capabilities.
 
 ## Features
 
-### 🎨 **Visual Workflow Editor**
-- Drag-and-drop node-based interface powered by React Flow
-- Beautiful, modern UI with Tailwind CSS
-- Real-time visual feedback
-- Minimap and zoom controls
-
-### 🔧 **Node Types**
-1. **Trigger Nodes** - Start your workflow
-   - Manual triggers
-   - Webhook triggers
-   - Scheduled triggers
-
-2. **Action Nodes** - Perform operations
-   - HTTP requests
-   - Database queries
-   - Custom actions
-
-3. **Condition Nodes** - Add logic branching
-   - If/else conditions
-   - Data validation
-   - Route based on criteria
-
-4. **Transform Nodes** - Modify data
-   - Map data
-   - Filter results
-   - Aggregate values
-
-### 💾 **Workflow Management**
-- **Database Persistence**: Workflows stored in PostgreSQL with Drizzle ORM
-- **Auto-save**: Changes automatically saved to database (2-second debounce)
-- **AI Generation**: Describe your workflow in plain English and let AI create it
-- **Inline Renaming**: Edit workflow names directly in the editor
-- **Workflow List**: View and manage all your workflows
-- **Delete & Clear**: Remove or reset workflows with confirmation dialogs
-
-### ⚡ **Execution Engine**
-- Sequential workflow execution
-- Real-time status updates
-- Visual execution feedback (running, success, error states)
-- Simulated async operations
-
-### 🎯 **Node Configuration**
-- Dynamic configuration panel
-- Edit node properties on-the-fly
-- Type-specific configuration options
-- Delete nodes with connection cleanup
-
-## Tech Stack
-
-- **Framework**: Next.js 16 (App Router)
-- **UI Library**: React 19
-- **State Management**: Jotai
-- **Database**: PostgreSQL with Drizzle ORM
-- **Authentication**: Better Auth
-- **Workflow Engine**: React Flow (@xyflow/react)
-- **Styling**: Tailwind CSS 4
-- **UI Components**: AI Elements + Custom shadcn/ui components
-- **Icons**: Lucide React
-- **Language**: TypeScript
+- **Visual Workflow Builder** - Drag-and-drop interface powered by React Flow
+- **Real Integrations** - Connect to Resend (emails), Linear (tickets), PostgreSQL, and external APIs
+- **Code Generation** - Convert workflows to executable TypeScript with `"use workflow"` directive
+- **Execution Tracking** - Monitor workflow runs with detailed logs
+- **Authentication** - Secure user authentication with Better Auth
+- **AI-Powered** - Generate workflows from natural language descriptions
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js 20+
-- pnpm (recommended) or npm
-- PostgreSQL 14+ (local or cloud)
+
+- Node.js 18+
+- PostgreSQL database
+- pnpm package manager
+
+### Environment Variables
+
+Create a `.env.local` file with the following:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/v8_workflow
+
+# Better Auth
+BETTER_AUTH_SECRET=your-secret-key
+BETTER_AUTH_URL=http://localhost:3000
+
+# Resend (Email)
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL=onboarding@yourdomain.com
+
+# Linear (Tickets)
+LINEAR_API_KEY=your-linear-api-key
+
+# OpenAI (for AI workflow generation)
+OPENAI_API_KEY=your-openai-api-key
+```
 
 ### Installation
 
-1. Clone the repository:
-\`\`\`bash
-git clone <repository-url>
-cd v8-workflow
-\`\`\`
-
-2. Install dependencies:
-\`\`\`bash
+```bash
+# Install dependencies
 pnpm install
-\`\`\`
 
-3. Set up environment variables:
-\`\`\`bash
-# Create a .env.local file
-cat > .env.local << EOF
-# Database
-DATABASE_URL=postgres://localhost:5432/workflow
-
-# Authentication
-BETTER_AUTH_SECRET=your-secret-key-here
-BETTER_AUTH_URL=http://localhost:3000
-
-# AI Workflow Generation (required)
-OPENAI_API_KEY=sk-your-openai-api-key
-
-# Optional: Use AI Gateway base URL (for caching/monitoring)
-# AI_BASE_URL=https://gateway.ai.cloudflare.com/v1/ACCOUNT/GATEWAY
-
-# Optional: Specify model (default: openai/gpt-4o-mini)
-# AI_MODEL=openai/gpt-4o-mini
-
-# Optional: Social auth providers
-# GITHUB_CLIENT_ID=your-github-client-id
-# GITHUB_CLIENT_SECRET=your-github-client-secret
-# GOOGLE_CLIENT_ID=your-google-client-id
-# GOOGLE_CLIENT_SECRET=your-google-client-secret
-EOF
-
-# Generate a secure secret key
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-\`\`\`
-
-4. Set up the database:
-\`\`\`bash
-# Generate and push the database schema
+# Run database migrations
 pnpm db:push
-\`\`\`
 
-5. Run the development server:
-\`\`\`bash
+# Start development server
 pnpm dev
-\`\`\`
-
-6. Open [http://localhost:3000](http://localhost:3000) and create an account
-
-## Usage
-
-### Creating a Workflow
-
-1. **Add Nodes**: Click on any node type in the Node Library (left sidebar) to add it to the canvas
-2. **Connect Nodes**: Drag from the output handle (right) of one node to the input handle (left) of another
-3. **Configure Nodes**: Click on a node to open the configuration panel (right sidebar)
-4. **Execute**: Click the "Run" button in the toolbar to execute the workflow
-
-### Keyboard Shortcuts
-
-- **Delete**: Select a node and click the delete button in the properties panel
-- **Pan**: Click and drag on the canvas background
-- **Zoom**: Use mouse wheel or pinch gesture
-
-### Example Workflow
-
-Here's a simple example workflow:
-
-1. **Trigger Node** → Start the workflow manually
-2. **Action Node** → Make an HTTP request to an API
-3. **Condition Node** → Check if the response was successful
-4. **Transform Node** → Process and format the data
-
-## AI Workflow Generation
-
-The app uses **Vercel AI Gateway** to generate workflows from natural language descriptions:
-
-### Features
-- **Natural Language Input**: Describe your workflow in plain English
-- **Automatic Node Creation**: AI generates appropriate trigger, action, condition, and transform nodes
-- **Smart Positioning**: Nodes are automatically positioned in a logical flow
-- **Instant Creation**: Generated workflows are saved to the database immediately
-
-### Setup
-
-**Option 1: Direct OpenAI (Simplest)**
-1. Get an OpenAI API key from [platform.openai.com](https://platform.openai.com/api-keys)
-2. Add to `.env.local`:
-```bash
-OPENAI_API_KEY=sk-your-openai-api-key-here
 ```
 
-**Option 2: Vercel AI Gateway (Optional - for caching/monitoring)**
-1. Visit [Vercel AI Gateway](https://vercel.com/docs/ai-gateway)
-2. Create a new gateway in your Vercel dashboard
-3. Get your gateway base URL
-4. Add to `.env.local`:
-```bash
-OPENAI_API_KEY=sk-your-openai-api-key
-AI_BASE_URL=https://gateway.vercel.com/v1/YOUR_GATEWAY
-AI_MODEL=openai/gpt-4o-mini
+Visit [http://localhost:3000](http://localhost:3000) to get started.
+
+## Workflow Types
+
+### Trigger Nodes
+- Webhook
+- Schedule
+- Manual
+- Database Event
+
+### Action Nodes
+- **Send Email** - Send emails via Resend
+- **Create Ticket** - Create Linear tickets
+- **Database Query** - Query or update PostgreSQL
+- **HTTP Request** - Call external APIs
+
+### Condition Nodes
+- Conditional branching based on data
+
+### Transform Nodes
+- Data transformation and mapping
+
+## Code Generation
+
+Workflows can be converted to executable TypeScript code with the `"use workflow"` directive:
+
+```typescript
+export async function welcome(userId: string) {
+  "use workflow";
+  
+  const user = await getUser(userId);
+  
+  const { subject, body } = await generateEmail({
+    name: user.name,
+    plan: user.plan
+  });
+  
+  const { status } = await sendEmail({
+    to: user.email,
+    subject,
+    body,
+  });
+  
+  return { status, subject, body };
+}
 ```
 
-**Option 3: Cloudflare AI Gateway (Optional - for caching/monitoring)**
-1. Visit [Cloudflare AI Gateway](https://developers.cloudflare.com/ai-gateway/)
-2. Create a gateway in Cloudflare dashboard
-3. Get your account ID and gateway slug
-4. Add to `.env.local`:
+### Generate Code for a Workflow
+
 ```bash
-OPENAI_API_KEY=sk-your-openai-api-key
-AI_BASE_URL=https://gateway.ai.cloudflare.com/v1/YOUR_ACCOUNT/YOUR_GATEWAY
-AI_MODEL=openai/gpt-4o-mini
+# Via API
+GET /api/workflows/{id}/generate-code
 ```
 
-### Example Prompts
-- "Create a workflow that fetches user data from an API and sends welcome emails"
-- "Build a workflow to process webhooks and store data in a database"
-- "Make a workflow that validates form submissions and sends notifications"
+The generated code includes:
+- Type-safe TypeScript
+- Real integration calls
+- Error handling
+- Execution logging
 
-## Authentication
+## API Endpoints
 
-The app uses **Better Auth** for authentication with the following features:
+### Workflow Management
+- `GET /api/workflows` - List all workflows
+- `POST /api/workflows` - Create a new workflow
+- `GET /api/workflows/{id}` - Get workflow by ID
+- `PUT /api/workflows/{id}` - Update workflow
+- `DELETE /api/workflows/{id}` - Delete workflow
 
-- **Email/Password Authentication**: Users can sign up and sign in with email and password
-- **Session Management**: Secure session handling with token-based authentication
-- **Social Providers** (Optional): GitHub and Google OAuth support
-- **Protected Routes**: All workflow pages require authentication
-- **User-specific Data**: Workflows are scoped to individual users
+### Workflow Execution
+- `POST /api/workflows/{id}/execute` - Execute a workflow
+- `GET /api/workflows/{id}/executions` - Get execution history
+- `GET /api/workflows/executions/{executionId}/logs` - Get detailed execution logs
 
-### Setting Up Social Providers
+### Code Generation
+- `GET /api/workflows/{id}/generate-code` - Generate TypeScript code
+- `POST /api/workflows/{id}/generate-code` - Generate with custom options
 
-**GitHub OAuth:**
-1. Go to GitHub Settings > Developer settings > OAuth Apps
-2. Create a new OAuth App
-3. Set Homepage URL to `http://localhost:3000`
-4. Set Authorization callback URL to `http://localhost:3000/api/auth/callback/github`
-5. Copy Client ID and Client Secret to `.env.local`
+### AI Generation
+- `POST /api/ai/generate-workflow` - Generate workflow from prompt
 
-**Google OAuth:**
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project and enable Google+ API
-3. Create OAuth 2.0 credentials
-4. Add `http://localhost:3000` to Authorized JavaScript origins
-5. Add `http://localhost:3000/api/auth/callback/google` to Authorized redirect URIs
-6. Copy Client ID and Client Secret to `.env.local`
+## Database Schema
 
-## Database Setup
+### Tables
+- `user` - User accounts
+- `session` - User sessions
+- `workflows` - Workflow definitions
+- `workflow_executions` - Execution history
+- `workflow_execution_logs` - Detailed node execution logs
 
-### Local PostgreSQL
+## Development
 
-\`\`\`bash
-# Install PostgreSQL (macOS with Homebrew)
-brew install postgresql
-brew services start postgresql
+### Scripts
 
-# Create database
-createdb workflow
+```bash
+# Development
+pnpm dev
 
-# Set DATABASE_URL in .env.local
-echo "DATABASE_URL=postgres://localhost:5432/workflow" > .env.local
-
-# Push schema to database
-pnpm db:push
-\`\`\`
-
-### Cloud Database Options
-
-**Neon (Recommended - Free tier available):**
-\`\`\`bash
-# Sign up at https://neon.tech
-# Copy connection string to .env.local
-DATABASE_URL=postgres://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb
-\`\`\`
-
-**Vercel Postgres:**
-\`\`\`bash
-# Create database in Vercel dashboard
-# Copy connection string
-DATABASE_URL=postgres://default:xxx@xxx.postgres.vercel-storage.com:5432/verceldb
-\`\`\`
-
-**Supabase:**
-\`\`\`bash
-# Create project at https://supabase.com
-# Copy connection string from Settings > Database
-DATABASE_URL=postgres://postgres:password@db.xxx.supabase.co:5432/postgres
-\`\`\`
-
-### Database Commands
-
-\`\`\`bash
-# Generate migrations
-pnpm db:generate
-
-# Push schema changes to database
-pnpm db:push
-
-# Open Drizzle Studio (database GUI)
-pnpm db:studio
-\`\`\`
-
-## State Management
-
-The application uses Jotai for state management with the following atoms:
-
-- `nodesAtom`: Stores all workflow nodes (persisted in database)
-- `edgesAtom`: Stores all connections between nodes (persisted in database)
-- `selectedNodeAtom`: Tracks the currently selected node
-- `isExecutingAtom`: Tracks workflow execution state
-- `isLoadingAtom`: Tracks workflow loading state
-
-All changes are automatically saved to the database with a 2-second debounce to optimize performance.
-
-## Customization
-
-### Adding New Node Types
-
-1. Create a new node component in `components/workflow/nodes/`
-2. Add the node type to `WorkflowNodeType` in `lib/workflow-store.ts`
-3. Register the node type in `workflow-canvas.tsx`
-4. Add a template in `node-library.tsx`
-5. Implement execution logic in `workflow-executor.ts`
-
-### Styling
-
-The application uses Tailwind CSS. Customize colors and themes in `app/globals.css` and `tailwind.config.ts`.
-
-## Deployment
-
-### Build for Production
-
-\`\`\`bash
+# Build
 pnpm build
-pnpm start
-\`\`\`
 
-### Deploy to Vercel
+# Type checking
+pnpm type-check
 
-\`\`\`bash
-vercel deploy
-\`\`\`
+# Linting
+pnpm lint
 
-## Features Roadmap
+# Formatting
+pnpm format
 
-- [ ] Real API integrations
-- [ ] Database persistence
-- [ ] User authentication
-- [ ] Workflow templates
-- [ ] Version control for workflows
-- [ ] Collaborative editing
-- [ ] Advanced node types (loops, subflows)
-- [ ] Error handling and retry logic
-- [ ] Workflow scheduling
-- [ ] Analytics and monitoring
+# Database
+pnpm db:generate  # Generate migrations
+pnpm db:push      # Push schema to database
+pnpm db:studio    # Open Drizzle Studio
+```
 
-## Contributing
+## Integrations
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Resend (Email)
+Send transactional emails with Resend's API.
+
+```typescript
+import { sendEmail } from '@/lib/integrations/resend';
+
+await sendEmail({
+  to: 'user@example.com',
+  subject: 'Welcome!',
+  body: 'Welcome to our platform',
+});
+```
+
+### Linear (Tickets)
+Create and manage Linear issues.
+
+```typescript
+import { createTicket } from '@/lib/integrations/linear';
+
+await createTicket({
+  title: 'Bug Report',
+  description: 'Something is broken',
+  priority: 1,
+});
+```
+
+### PostgreSQL
+Direct database access for queries and updates.
+
+```typescript
+import { queryData } from '@/lib/integrations/database';
+
+await queryData('users', { email: 'user@example.com' });
+```
+
+### External APIs
+Make HTTP requests to any API.
+
+```typescript
+import { callApi } from '@/lib/integrations/api';
+
+await callApi({
+  url: 'https://api.example.com/endpoint',
+  method: 'POST',
+  body: { data: 'value' },
+});
+```
 
 ## License
 
-MIT License - feel free to use this project for personal or commercial purposes.
-
-## Acknowledgments
-
-- [n8n](https://n8n.io/) - Inspiration for the workflow automation concept
-- [React Flow](https://reactflow.dev/) - Powerful node-based UI library
-- [Jotai](https://jotai.org/) - Primitive and flexible state management
-- [AI Elements](https://ai-sdk.dev/elements) - Beautiful workflow components
-- [Vercel](https://vercel.com/) - Hosting and deployment platform
+MIT

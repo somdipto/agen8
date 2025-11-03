@@ -13,6 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Trash2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export function NodeConfigPanel() {
   const [selectedNodeId, setSelectedNodeId] = useAtom(selectedNodeAtom);
@@ -97,13 +104,21 @@ export function NodeConfigPanel() {
                 <Label htmlFor="triggerType" className="text-xs">
                   Trigger Type
                 </Label>
-                <Input
-                  id="triggerType"
-                  value={(selectedNode.data.config?.triggerType as string) || ''}
-                  onChange={(e) => handleUpdateConfig('triggerType', e.target.value)}
-                  placeholder="e.g., Manual, Webhook, Schedule"
+                <Select
+                  value={(selectedNode.data.config?.triggerType as string) || 'Manual'}
+                  onValueChange={(value) => handleUpdateConfig('triggerType', value)}
                   disabled={isGenerating}
-                />
+                >
+                  <SelectTrigger id="triggerType">
+                    <SelectValue placeholder="Select trigger type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Manual">Manual</SelectItem>
+                    <SelectItem value="Webhook">Webhook</SelectItem>
+                    <SelectItem value="Schedule">Schedule</SelectItem>
+                    <SelectItem value="Database Event">Database Event</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
@@ -113,13 +128,21 @@ export function NodeConfigPanel() {
                   <Label htmlFor="actionType" className="text-xs">
                     Action Type
                   </Label>
-                  <Input
-                    id="actionType"
-                    value={(selectedNode.data.config?.actionType as string) || ''}
-                    onChange={(e) => handleUpdateConfig('actionType', e.target.value)}
-                    placeholder="e.g., HTTP Request, Database Query"
+                  <Select
+                    value={(selectedNode.data.config?.actionType as string) || 'HTTP Request'}
+                    onValueChange={(value) => handleUpdateConfig('actionType', value)}
                     disabled={isGenerating}
-                  />
+                  >
+                    <SelectTrigger id="actionType">
+                      <SelectValue placeholder="Select action type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Send Email">Send Email</SelectItem>
+                      <SelectItem value="Create Ticket">Create Ticket</SelectItem>
+                      <SelectItem value="Database Query">Database Query</SelectItem>
+                      <SelectItem value="HTTP Request">HTTP Request</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="endpoint" className="text-xs">

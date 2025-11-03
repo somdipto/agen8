@@ -32,3 +32,11 @@ If any of the above commands fail or show errors:
 - Format code before making commits
 - All three checks must pass before work is considered complete
 
+## Documentation Guidelines
+- **No Emojis**: Do not use emojis in any code, documentation, or README files
+- **No File Structure**: Do not include file/folder structure diagrams in README files
+
+## Component Guidelines
+- **Use shadcn/ui**: Always use shadcn/ui components when available. Do not create custom components that duplicate shadcn functionality
+- **Add Components**: Use `npx shadcn@latest add <component>` to add new shadcn components as needed
+

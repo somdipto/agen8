@@ -6,6 +6,12 @@ type ExecutionResult = {
   error?: string;
 };
 
+export interface WorkflowExecutionContext {
+  executionId?: string;
+  userId?: string;
+  input?: Record<string, unknown>;
+}
+
 class WorkflowExecutor {
   private nodes: Map<string, WorkflowNode>;
   private edges: WorkflowEdge[];
@@ -38,7 +44,7 @@ class WorkflowExecutor {
     this.onNodeUpdate?.(node.id, 'running');
 
     try {
-      // Simulate execution delay
+      // Simulate execution delay for UI
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       let result: ExecutionResult = { success: true };
@@ -49,7 +55,7 @@ class WorkflowExecutor {
           break;
 
         case 'action':
-          // Simulate HTTP request or action
+          // Simulate action execution for UI
           const endpoint = node.data.config?.endpoint as string;
           result = {
             success: true,

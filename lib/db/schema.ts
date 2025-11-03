@@ -67,7 +67,53 @@ export const workflows = pgTable('workflows', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// Workflow executions table to track workflow runs
+export const workflowExecutions = pgTable('workflow_executions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workflowId: uuid('workflow_id')
+    .notNull()
+    .references(() => workflows.id),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  status: text('status')
+    .notNull()
+    .$type<'pending' | 'running' | 'success' | 'error' | 'cancelled'>(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  input: jsonb('input').$type<Record<string, any>>(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  output: jsonb('output').$type<any>(),
+  error: text('error'),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+  duration: text('duration'), // Duration in milliseconds
+});
+
+// Workflow execution logs to track individual node executions
+export const workflowExecutionLogs = pgTable('workflow_execution_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  executionId: uuid('execution_id')
+    .notNull()
+    .references(() => workflowExecutions.id),
+  nodeId: text('node_id').notNull(),
+  nodeName: text('node_name').notNull(),
+  nodeType: text('node_type').notNull(),
+  status: text('status').notNull().$type<'pending' | 'running' | 'success' | 'error'>(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  input: jsonb('input').$type<any>(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  output: jsonb('output').$type<any>(),
+  error: text('error'),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  completedAt: timestamp('completed_at'),
+  duration: text('duration'), // Duration in milliseconds
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Workflow = typeof workflows.$inferSelect;
 export type NewWorkflow = typeof workflows.$inferInsert;
+export type WorkflowExecution = typeof workflowExecutions.$inferSelect;
+export type NewWorkflowExecution = typeof workflowExecutions.$inferInsert;
+export type WorkflowExecutionLog = typeof workflowExecutionLogs.$inferSelect;
+export type NewWorkflowExecutionLog = typeof workflowExecutionLogs.$inferInsert;
