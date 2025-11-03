@@ -20,16 +20,19 @@ import {
   onNodesChangeAtom,
   onEdgesChangeAtom,
   selectedNodeAtom,
+  isGeneratingAtom,
 } from '@/lib/workflow-store';
 import { TriggerNode } from './nodes/trigger-node';
 import { ActionNode } from './nodes/action-node';
 import { ConditionNode } from './nodes/condition-node';
 import { TransformNode } from './nodes/transform-node';
 import { v4 as uuidv4 } from 'uuid';
+import { Loader2 } from 'lucide-react';
 
 export function WorkflowCanvas() {
   const [nodes] = useAtom(nodesAtom);
   const [edges, setEdges] = useAtom(edgesAtom);
+  const [isGenerating] = useAtom(isGeneratingAtom);
   const onNodesChange = useSetAtom(onNodesChangeAtom);
   const onEdgesChange = useSetAtom(onEdgesChangeAtom);
   const setSelectedNode = useSetAtom(selectedNodeAtom);
@@ -66,18 +69,29 @@ export function WorkflowCanvas() {
   );
 
   return (
-    <div className="h-full w-full">
+    <div className="relative h-full w-full">
+      {isGenerating && (
+        <div className="bg-background/80 absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="text-center">
+            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin" />
+            <div className="text-lg font-semibold">Generating workflow...</div>
+          </div>
+        </div>
+      )}
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
+        onNodesChange={isGenerating ? undefined : onNodesChange}
+        onEdgesChange={isGenerating ? undefined : onEdgesChange}
+        onConnect={isGenerating ? undefined : onConnect}
+        onNodeClick={isGenerating ? undefined : onNodeClick}
         nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
         className="bg-background"
+        nodesDraggable={!isGenerating}
+        nodesConnectable={!isGenerating}
+        elementsSelectable={!isGenerating}
       >
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
         <Controls />

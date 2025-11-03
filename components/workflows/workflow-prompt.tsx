@@ -19,37 +19,23 @@ export function WorkflowPrompt() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/ai/generate-workflow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.details || error.error || 'Failed to generate');
-      }
-
-      const workflowData = await response.json();
-
-      if (workflowData.error) {
-        throw new Error(workflowData.error);
-      }
-
-      // Create workflow in database
+      // Create empty workflow first
       const newWorkflow = await workflowApi.create({
-        name: workflowData.name || 'AI Generated Workflow',
-        description: workflowData.description || `Generated from: ${prompt}`,
-        nodes: workflowData.nodes || [],
-        edges: workflowData.edges || [],
+        name: 'AI Generated Workflow',
+        description: `Generated from: ${prompt}`,
+        nodes: [],
+        edges: [],
       });
 
-      // Navigate to the new workflow
-      router.push(`/workflows/${newWorkflow.id}`);
+      // Store the prompt in sessionStorage for the workflow page to use
+      sessionStorage.setItem('ai-prompt', prompt);
+      sessionStorage.setItem('generating-workflow-id', newWorkflow.id);
+
+      // Navigate to the new workflow immediately
+      router.push(`/workflows/${newWorkflow.id}?generating=true`);
     } catch (error) {
-      console.error('Failed to generate workflow:', error);
-      alert('Failed to generate workflow. Please try again.');
-    } finally {
+      console.error('Failed to create workflow:', error);
+      alert('Failed to create workflow. Please try again.');
       setIsGenerating(false);
     }
   };

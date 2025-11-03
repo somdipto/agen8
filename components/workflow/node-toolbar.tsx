@@ -1,9 +1,14 @@
 'use client';
 
-import { useSetAtom } from 'jotai';
+import { useSetAtom, useAtom } from 'jotai';
 import { PlayCircle, Zap, GitBranch, RefreshCw } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { addNodeAtom, type WorkflowNode, type WorkflowNodeType } from '@/lib/workflow-store';
+import {
+  addNodeAtom,
+  isGeneratingAtom,
+  type WorkflowNode,
+  type WorkflowNodeType,
+} from '@/lib/workflow-store';
 import { Button } from '@/components/ui/button';
 
 const nodeTemplates = [
@@ -39,6 +44,7 @@ const nodeTemplates = [
 
 export function NodeToolbar() {
   const addNode = useSetAtom(addNodeAtom);
+  const [isGenerating] = useAtom(isGeneratingAtom);
 
   const handleAddNode = (template: (typeof nodeTemplates)[0]) => {
     // Generate random position - this is fine in event handlers
@@ -78,6 +84,7 @@ export function NodeToolbar() {
             size="icon"
             className="h-10 w-10"
             title={template.label}
+            disabled={isGenerating}
           >
             <Icon className="h-5 w-5" />
           </Button>

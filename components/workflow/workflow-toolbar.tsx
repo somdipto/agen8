@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import {
   clearWorkflowAtom,
   isExecutingAtom,
+  isGeneratingAtom,
   nodesAtom,
   edgesAtom,
   updateNodeDataAtom,
@@ -37,6 +38,7 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const [nodes] = useAtom(nodesAtom);
   const [edges] = useAtom(edgesAtom);
   const [isExecuting, setIsExecuting] = useAtom(isExecutingAtom);
+  const [isGenerating] = useAtom(isGeneratingAtom);
   const clearWorkflow = useSetAtom(clearWorkflowAtom);
   const updateNodeData = useSetAtom(updateNodeDataAtom);
   const [currentWorkflowId] = useAtom(currentWorkflowIdAtom);
@@ -151,7 +153,7 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
     <>
       <Button
         onClick={handleExecute}
-        disabled={isExecuting || nodes.length === 0}
+        disabled={isExecuting || nodes.length === 0 || isGenerating}
         variant="ghost"
         size="icon"
         title={isExecuting ? 'Running...' : 'Run workflow'}
@@ -162,14 +164,14 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
         onClick={handleSave}
         variant="ghost"
         size="icon"
-        disabled={!currentWorkflowId}
+        disabled={!currentWorkflowId || isGenerating}
         title="Save workflow"
       >
         <Save className="h-4 w-4" />
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" title="More options">
+          <Button variant="ghost" size="icon" title="More options" disabled={isGenerating}>
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

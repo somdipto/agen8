@@ -6,6 +6,7 @@ import {
   nodesAtom,
   updateNodeDataAtom,
   deleteNodeAtom,
+  isGeneratingAtom,
 } from '@/lib/workflow-store';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { Label } from '@/components/ui/label';
 export function NodeConfigPanel() {
   const [selectedNodeId, setSelectedNodeId] = useAtom(selectedNodeAtom);
   const [nodes] = useAtom(nodesAtom);
+  const [isGenerating] = useAtom(isGeneratingAtom);
   const updateNodeData = useSetAtom(updateNodeDataAtom);
   const deleteNode = useSetAtom(deleteNodeAtom);
 
@@ -72,6 +74,7 @@ export function NodeConfigPanel() {
             id="label"
             value={selectedNode.data.label}
             onChange={(e) => handleUpdateLabel(e.target.value)}
+            disabled={isGenerating}
           />
         </div>
 
@@ -82,6 +85,7 @@ export function NodeConfigPanel() {
             value={selectedNode.data.description || ''}
             onChange={(e) => handleUpdateDescription(e.target.value)}
             placeholder="Optional description"
+            disabled={isGenerating}
           />
         </div>
 
@@ -98,6 +102,7 @@ export function NodeConfigPanel() {
                   value={(selectedNode.data.config?.triggerType as string) || ''}
                   onChange={(e) => handleUpdateConfig('triggerType', e.target.value)}
                   placeholder="e.g., Manual, Webhook, Schedule"
+                  disabled={isGenerating}
                 />
               </div>
             )}
@@ -113,6 +118,7 @@ export function NodeConfigPanel() {
                     value={(selectedNode.data.config?.actionType as string) || ''}
                     onChange={(e) => handleUpdateConfig('actionType', e.target.value)}
                     placeholder="e.g., HTTP Request, Database Query"
+                    disabled={isGenerating}
                   />
                 </div>
                 <div className="space-y-2">
@@ -124,6 +130,7 @@ export function NodeConfigPanel() {
                     value={(selectedNode.data.config?.endpoint as string) || ''}
                     onChange={(e) => handleUpdateConfig('endpoint', e.target.value)}
                     placeholder="https://api.example.com"
+                    disabled={isGenerating}
                   />
                 </div>
               </>
@@ -139,6 +146,7 @@ export function NodeConfigPanel() {
                   value={(selectedNode.data.config?.condition as string) || ''}
                   onChange={(e) => handleUpdateConfig('condition', e.target.value)}
                   placeholder="e.g., value > 100"
+                  disabled={isGenerating}
                 />
               </div>
             )}
@@ -153,6 +161,7 @@ export function NodeConfigPanel() {
                   value={(selectedNode.data.config?.transformType as string) || ''}
                   onChange={(e) => handleUpdateConfig('transformType', e.target.value)}
                   placeholder="e.g., Map Data, Filter, Aggregate"
+                  disabled={isGenerating}
                 />
               </div>
             )}
@@ -160,7 +169,12 @@ export function NodeConfigPanel() {
         </div>
 
         <div className="border-t pt-4">
-          <Button variant="destructive" className="w-full" onClick={handleDelete}>
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={handleDelete}
+            disabled={isGenerating}
+          >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Node
           </Button>
