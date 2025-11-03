@@ -11,7 +11,7 @@ import { sendEmail, generateEmail } from '../integrations';
 /**
  * Welcome workflow that sends an onboarding email to a new user
  */
-export async function welcome(userId: string) {
+export async function welcome(userId: string, apiKey: string, fromEmail?: string) {
   'use workflow';
 
   const user = await getUser(userId);
@@ -26,6 +26,8 @@ export async function welcome(userId: string) {
     to: user.email,
     subject,
     body,
+    apiKey,
+    fromEmail,
   });
 
   return { status, subject, body };
@@ -34,7 +36,11 @@ export async function welcome(userId: string) {
 /**
  * More complex example: User onboarding workflow
  */
-export async function onboardUser(input: Record<string, unknown>): Promise<unknown> {
+export async function onboardUser(
+  input: Record<string, unknown>,
+  apiKey: string,
+  fromEmail?: string
+): Promise<unknown> {
   'use workflow';
 
   // Action: Get user data
@@ -55,6 +61,8 @@ export async function onboardUser(input: Record<string, unknown>): Promise<unkno
       to: user.email,
       subject,
       body,
+      apiKey,
+      fromEmail,
     });
 
     return emailResult;
@@ -70,6 +78,8 @@ export async function onboardUser(input: Record<string, unknown>): Promise<unkno
       to: user.email,
       subject,
       body,
+      apiKey,
+      fromEmail,
     });
 
     return emailResult;

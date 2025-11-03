@@ -1,14 +1,14 @@
 import 'server-only';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export interface SendEmailParams {
   to: string | string[];
   subject: string;
   body: string;
   from?: string;
   html?: string;
+  apiKey: string;
+  fromEmail?: string;
 }
 
 export interface SendEmailResult {
@@ -22,8 +22,17 @@ export interface SendEmailResult {
  */
 export async function sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
   try {
+    if (!params.apiKey) {
+      return {
+        status: 'error',
+        error: 'Resend API key not configured',
+      };
+    }
+
+    const resend = new Resend(params.apiKey);
+
     const { data, error } = await resend.emails.send({
-      from: params.from || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      from: params.from || params.fromEmail || 'onboarding@resend.dev',
       to: Array.isArray(params.to) ? params.to : [params.to],
       subject: params.subject,
       text: params.body,

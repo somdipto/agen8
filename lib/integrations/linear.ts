@@ -1,19 +1,6 @@
 import 'server-only';
 import { LinearClient, Issue } from '@linear/sdk';
 
-let linearClient: LinearClient | null = null;
-
-function getLinearClient(): LinearClient {
-  if (!linearClient) {
-    const apiKey = process.env.LINEAR_API_KEY;
-    if (!apiKey) {
-      throw new Error('LINEAR_API_KEY environment variable is not set');
-    }
-    linearClient = new LinearClient({ apiKey });
-  }
-  return linearClient;
-}
-
 export interface CreateTicketParams {
   title: string;
   description: string;
@@ -21,6 +8,7 @@ export interface CreateTicketParams {
   priority?: number;
   labels?: string[];
   assigneeId?: string;
+  apiKey: string;
 }
 
 export interface CreateTicketResult {
@@ -35,7 +23,14 @@ export interface CreateTicketResult {
  */
 export async function createTicket(params: CreateTicketParams): Promise<CreateTicketResult> {
   try {
-    const client = getLinearClient();
+    if (!params.apiKey) {
+      return {
+        status: 'error',
+        error: 'Linear API key not configured',
+      };
+    }
+
+    const client = new LinearClient({ apiKey: params.apiKey });
 
     // Get the first team if no teamId is provided
     let teamId = params.teamId;
@@ -96,9 +91,14 @@ export async function createTicket(params: CreateTicketParams): Promise<CreateTi
 /**
  * Get a ticket from Linear
  */
-export async function getTicket(issueId: string): Promise<Issue | null> {
+export async function getTicket(issueId: string, apiKey: string): Promise<Issue | null> {
   try {
-    const client = getLinearClient();
+    if (!apiKey) {
+      console.error('Linear API key not provided');
+      return null;
+    }
+
+    const client = new LinearClient({ apiKey });
     const issue = await client.issue(issueId);
     return issue;
   } catch (error) {
@@ -118,10 +118,18 @@ export async function updateTicket(
     priority?: number;
     assigneeId?: string;
     labelIds?: string[];
-  }>
+  }>,
+  apiKey: string
 ): Promise<CreateTicketResult> {
   try {
-    const client = getLinearClient();
+    if (!apiKey) {
+      return {
+        status: 'error',
+        error: 'Linear API key not configured',
+      };
+    }
+
+    const client = new LinearClient({ apiKey });
     const issue = await client.issue(issueId);
 
     if (!issue) {

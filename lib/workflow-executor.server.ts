@@ -6,7 +6,8 @@ import { createTicket } from './integrations/linear';
 import { queryData } from './integrations/database';
 import { callApi } from './integrations/api';
 import { db } from './db';
-import { workflowExecutionLogs } from './db/schema';
+import { workflowExecutionLogs, user } from './db/schema';
+import { eq } from 'drizzle-orm';
 
 type ExecutionResult = {
   success: boolean;
@@ -20,11 +21,18 @@ export interface WorkflowExecutionContext {
   input?: Record<string, unknown>;
 }
 
+interface UserIntegrations {
+  resendApiKey?: string | null;
+  resendFromEmail?: string | null;
+  linearApiKey?: string | null;
+}
+
 class ServerWorkflowExecutor {
   private nodes: Map<string, WorkflowNode>;
   private edges: WorkflowEdge[];
   private results: Map<string, ExecutionResult>;
   private context: WorkflowExecutionContext;
+  private userIntegrations: UserIntegrations = {};
 
   constructor(
     nodes: WorkflowNode[],
@@ -35,6 +43,31 @@ class ServerWorkflowExecutor {
     this.edges = edges;
     this.results = new Map();
     this.context = context;
+  }
+
+  private async loadUserIntegrations(): Promise<void> {
+    if (!this.context.userId) return;
+
+    try {
+      const userData = await db.query.user.findFirst({
+        where: eq(user.id, this.context.userId),
+        columns: {
+          resendApiKey: true,
+          resendFromEmail: true,
+          linearApiKey: true,
+        },
+      });
+
+      if (userData) {
+        this.userIntegrations = {
+          resendApiKey: userData.resendApiKey,
+          resendFromEmail: userData.resendFromEmail,
+          linearApiKey: userData.linearApiKey,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load user integrations:', error);
+    }
   }
 
   private getNextNodes(nodeId: string): string[] {
@@ -98,23 +131,40 @@ class ServerWorkflowExecutor {
 
           // Determine the type of action and execute accordingly
           if (actionType === 'Send Email' || node.data.label.toLowerCase().includes('email')) {
-            const emailParams = {
-              to: (this.context.input?.email as string) || 'user@example.com',
-              subject: (this.context.input?.subject as string) || 'Notification',
-              body: (this.context.input?.body as string) || 'No content',
-            };
-            const emailResult = await sendEmail(emailParams);
-            result = { success: emailResult.status === 'success', data: emailResult };
+            if (!this.userIntegrations.resendApiKey) {
+              result = {
+                success: false,
+                error: 'Resend API key not configured. Please configure in settings.',
+              };
+            } else {
+              const emailParams = {
+                to: (this.context.input?.email as string) || 'user@example.com',
+                subject: (this.context.input?.subject as string) || 'Notification',
+                body: (this.context.input?.body as string) || 'No content',
+                apiKey: this.userIntegrations.resendApiKey,
+                fromEmail: this.userIntegrations.resendFromEmail || undefined,
+              };
+              const emailResult = await sendEmail(emailParams);
+              result = { success: emailResult.status === 'success', data: emailResult };
+            }
           } else if (
             actionType === 'Create Ticket' ||
             node.data.label.toLowerCase().includes('ticket')
           ) {
-            const ticketParams = {
-              title: (this.context.input?.title as string) || 'New Ticket',
-              description: (this.context.input?.description as string) || '',
-            };
-            const ticketResult = await createTicket(ticketParams);
-            result = { success: ticketResult.status === 'success', data: ticketResult };
+            if (!this.userIntegrations.linearApiKey) {
+              result = {
+                success: false,
+                error: 'Linear API key not configured. Please configure in settings.',
+              };
+            } else {
+              const ticketParams = {
+                title: (this.context.input?.title as string) || 'New Ticket',
+                description: (this.context.input?.description as string) || '',
+                apiKey: this.userIntegrations.linearApiKey,
+              };
+              const ticketResult = await createTicket(ticketParams);
+              result = { success: ticketResult.status === 'success', data: ticketResult };
+            }
           } else if (
             actionType === 'Database Query' ||
             node.data.label.toLowerCase().includes('database')
@@ -202,6 +252,9 @@ class ServerWorkflowExecutor {
   }
 
   async execute(): Promise<Map<string, ExecutionResult>> {
+    // Load user integrations before executing
+    await this.loadUserIntegrations();
+
     const triggerNodes = this.getTriggerNodes();
 
     if (triggerNodes.length === 0) {

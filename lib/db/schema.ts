@@ -9,6 +9,10 @@ export const user = pgTable('user', {
   image: text('image'),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
+  // User-level integrations
+  resendApiKey: text('resend_api_key'),
+  resendFromEmail: text('resend_from_email'),
+  linearApiKey: text('linear_api_key'),
 });
 
 export const session = pgTable('session', {
