@@ -10,6 +10,7 @@ import {
   type WorkflowNodeType,
 } from '@/lib/workflow-store';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 const nodeTemplates = [
   {
@@ -73,21 +74,25 @@ export function NodeToolbar() {
   };
 
   return (
-    <div className="bg-secondary/30 flex h-full w-14 flex-col gap-1 border-r p-2">
-      {nodeTemplates.map((template) => {
+    <div className="bg-background absolute top-4 left-4 z-10 flex border shadow-lg">
+      {nodeTemplates.map((template, index) => {
         const Icon = template.icon;
         return (
-          <Button
-            key={template.type}
-            onClick={() => handleAddNode(template)}
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10"
-            title={template.label}
-            disabled={isGenerating}
-          >
-            <Icon className="h-5 w-5" />
-          </Button>
+          <div key={template.type} className="flex">
+            <Button
+              onClick={() => handleAddNode(template)}
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-none p-1"
+              title={template.label}
+              disabled={isGenerating}
+            >
+              <Icon className="h-5 w-5" />
+            </Button>
+            {index < nodeTemplates.length - 1 && (
+              <Separator orientation="vertical" className="bg-border h-10" />
+            )}
+          </div>
         );
       })}
     </div>

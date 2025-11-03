@@ -56,12 +56,17 @@ export const onEdgesChangeAtom = atom(null, (get, set, changes: EdgeChange[]) =>
 });
 
 export const addNodeAtom = atom(null, (get, set, node: WorkflowNode) => {
+  // Save current state to history before making changes
   const currentNodes = get(nodesAtom);
+  const currentEdges = get(edgesAtom);
+  const history = get(historyAtom);
+  set(historyAtom, [...history, { nodes: currentNodes, edges: currentEdges }]);
+  set(futureAtom, []);
+
   const newNodes = [...currentNodes, node];
   set(nodesAtom, newNodes);
 
   // Auto-save to database
-  const currentEdges = get(edgesAtom);
   const workflowId = get(currentWorkflowIdAtom);
 
   if (workflowId) {
@@ -89,8 +94,12 @@ export const updateNodeDataAtom = atom(
 );
 
 export const deleteNodeAtom = atom(null, (get, set, nodeId: string) => {
+  // Save current state to history before making changes
   const currentNodes = get(nodesAtom);
   const currentEdges = get(edgesAtom);
+  const history = get(historyAtom);
+  set(historyAtom, [...history, { nodes: currentNodes, edges: currentEdges }]);
+  set(futureAtom, []);
 
   const newNodes = currentNodes.filter((node) => node.id !== nodeId);
   const newEdges = currentEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId);
@@ -110,6 +119,13 @@ export const deleteNodeAtom = atom(null, (get, set, nodeId: string) => {
 });
 
 export const clearWorkflowAtom = atom(null, (get, set) => {
+  // Save current state to history before making changes
+  const currentNodes = get(nodesAtom);
+  const currentEdges = get(edgesAtom);
+  const history = get(historyAtom);
+  set(historyAtom, [...history, { nodes: currentNodes, edges: currentEdges }]);
+  set(futureAtom, []);
+
   set(nodesAtom, []);
   set(edgesAtom, []);
   set(selectedNodeAtom, null);
@@ -154,3 +170,78 @@ export const saveWorkflowAsAtom = atom(
     }
   }
 );
+
+// Workflow toolbar UI state atoms
+export const isEditingWorkflowNameAtom = atom(false);
+export const editingWorkflowNameAtom = atom('');
+export const showClearDialogAtom = atom(false);
+export const showDeleteDialogAtom = atom(false);
+export const isSavingAtom = atom(false);
+
+// Undo/Redo state
+type HistoryState = {
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+};
+
+const historyAtom = atom<HistoryState[]>([]);
+const futureAtom = atom<HistoryState[]>([]);
+
+// Undo atom
+export const undoAtom = atom(null, (get, set) => {
+  const history = get(historyAtom);
+  if (history.length === 0) return;
+
+  const currentNodes = get(nodesAtom);
+  const currentEdges = get(edgesAtom);
+  const future = get(futureAtom);
+
+  // Save current state to future
+  set(futureAtom, [...future, { nodes: currentNodes, edges: currentEdges }]);
+
+  // Pop from history and set as current
+  const newHistory = [...history];
+  const previousState = newHistory.pop()!;
+  set(historyAtom, newHistory);
+  set(nodesAtom, previousState.nodes);
+  set(edgesAtom, previousState.edges);
+
+  // Auto-save to database
+  const workflowId = get(currentWorkflowIdAtom);
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, {
+      nodes: previousState.nodes,
+      edges: previousState.edges,
+    });
+  }
+});
+
+// Redo atom
+export const redoAtom = atom(null, (get, set) => {
+  const future = get(futureAtom);
+  if (future.length === 0) return;
+
+  const currentNodes = get(nodesAtom);
+  const currentEdges = get(edgesAtom);
+  const history = get(historyAtom);
+
+  // Save current state to history
+  set(historyAtom, [...history, { nodes: currentNodes, edges: currentEdges }]);
+
+  // Pop from future and set as current
+  const newFuture = [...future];
+  const nextState = newFuture.pop()!;
+  set(futureAtom, newFuture);
+  set(nodesAtom, nextState.nodes);
+  set(edgesAtom, nextState.edges);
+
+  // Auto-save to database
+  const workflowId = get(currentWorkflowIdAtom);
+  if (workflowId) {
+    workflowApi.autoSaveWorkflow(workflowId, { nodes: nextState.nodes, edges: nextState.edges });
+  }
+});
+
+// Can undo/redo atoms
+export const canUndoAtom = atom((get) => get(historyAtom).length > 0);
+export const canRedoAtom = atom((get) => get(futureAtom).length > 0);

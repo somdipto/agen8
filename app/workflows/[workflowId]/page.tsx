@@ -3,6 +3,7 @@
 import { use, useEffect, useCallback } from 'react';
 import { Provider, useSetAtom, useAtom } from 'jotai';
 import { useSearchParams } from 'next/navigation';
+import { ReactFlowProvider } from '@xyflow/react';
 import { WorkflowCanvas } from '@/components/workflow/workflow-canvas';
 import { NodeToolbar } from '@/components/workflow/node-toolbar';
 import { NodeConfigPanel } from '@/components/workflow/node-config-panel';
@@ -169,9 +170,11 @@ function WorkflowEditor({ params }: { params: Promise<{ workflowId: string }> })
     <div className="flex h-screen flex-col overflow-hidden">
       <WorkflowToolbar workflowId={workflowId} />
       <div className="flex flex-1 overflow-hidden">
-        <NodeToolbar />
-        <main className="flex-1 overflow-hidden">
-          <WorkflowCanvas />
+        <main className="relative flex-1 overflow-hidden">
+          <ReactFlowProvider>
+            <WorkflowCanvas />
+            <NodeToolbar />
+          </ReactFlowProvider>
         </main>
         <NodeConfigPanel />
       </div>

@@ -1,5 +1,17 @@
 # Agent Instructions
 
+## Package Management
+
+This project uses **pnpm** as its package manager. Always use pnpm for all package operations:
+
+- Installing packages: `pnpm add <package>`
+- Running scripts: `pnpm <script-name>`
+- **For shadcn/ui components**: Use `pnpm dlx shadcn@latest add <component>` (not `npx`)
+
+Never use npm or yarn for this project.
+
+---
+
 When working on this project, always follow these steps before completing your work:
 
 ## 1. Format Code
@@ -38,6 +50,6 @@ If any of the above commands fail or show errors:
 
 ## Component Guidelines
 - **Use shadcn/ui**: Always use shadcn/ui components when available. Do not create custom components that duplicate shadcn functionality
-- **Add Components**: Use `npx shadcn@latest add <component>` to add new shadcn components as needed
-- **No Native Dialogs**: Never use native `alert()` or `confirm()` dialogs. Always use shadcn AlertDialog or Dialog components instead
+- **Add Components**: Use `pnpm dlx shadcn@latest add <component>` to add new shadcn components as needed
+- **No Native Dialogs**: Never use native `alert()` or `confirm()` dialogs. Always use shadcn AlertDialog, Dialog, or Sonner toast components instead
 

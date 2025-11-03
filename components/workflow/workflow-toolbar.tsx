@@ -1,11 +1,12 @@
 'use client';
 
 import { useAtom, useSetAtom } from 'jotai';
-import { Play, Save, MoreVertical, Trash2, Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { Play, Save, MoreVertical, Trash2, Pencil, Loader2, Undo2, Redo2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import {
   clearWorkflowAtom,
   isExecutingAtom,
@@ -15,6 +16,15 @@ import {
   updateNodeDataAtom,
   currentWorkflowIdAtom,
   currentWorkflowNameAtom,
+  isEditingWorkflowNameAtom,
+  editingWorkflowNameAtom,
+  showClearDialogAtom,
+  showDeleteDialogAtom,
+  isSavingAtom,
+  undoAtom,
+  redoAtom,
+  canUndoAtom,
+  canRedoAtom,
 } from '@/lib/workflow-store';
 import { executeWorkflow } from '@/lib/workflow-executor';
 import {
@@ -44,10 +54,15 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const [currentWorkflowId] = useAtom(currentWorkflowIdAtom);
   const [workflowName, setWorkflowName] = useAtom(currentWorkflowNameAtom);
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingName, setEditingName] = useState(workflowName);
-  const [showClearDialog, setShowClearDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isEditing, setIsEditing] = useAtom(isEditingWorkflowNameAtom);
+  const [editingName, setEditingName] = useAtom(editingWorkflowNameAtom);
+  const [showClearDialog, setShowClearDialog] = useAtom(showClearDialogAtom);
+  const [showDeleteDialog, setShowDeleteDialog] = useAtom(showDeleteDialogAtom);
+  const [isSaving, setIsSaving] = useAtom(isSavingAtom);
+  const undo = useSetAtom(undoAtom);
+  const redo = useSetAtom(redoAtom);
+  const [canUndo] = useAtom(canUndoAtom);
+  const [canRedo] = useAtom(canRedoAtom);
 
   const handleExecute = async () => {
     setIsExecuting(true);
@@ -97,11 +112,15 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const handleSave = async () => {
     if (!currentWorkflowId) return;
 
+    setIsSaving(true);
     try {
       await workflowApi.update(currentWorkflowId, { nodes, edges });
+      toast.success('Workflow saved successfully');
     } catch (error) {
       console.error('Failed to save workflow:', error);
-      alert('Failed to save workflow. Please try again.');
+      toast.error('Failed to save workflow. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -116,10 +135,11 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
     try {
       await workflowApi.delete(currentWorkflowId);
       setShowDeleteDialog(false);
+      toast.success('Workflow deleted successfully');
       router.push('/');
     } catch (error) {
       console.error('Failed to delete workflow:', error);
-      alert('Failed to delete workflow. Please try again.');
+      toast.error('Failed to delete workflow. Please try again.');
     }
   };
 
@@ -152,6 +172,25 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
   const actions = (
     <>
       <Button
+        onClick={() => undo()}
+        disabled={!canUndo || isGenerating}
+        variant="ghost"
+        size="icon"
+        title="Undo"
+      >
+        <Undo2 className="h-4 w-4" />
+      </Button>
+      <Button
+        onClick={() => redo()}
+        disabled={!canRedo || isGenerating}
+        variant="ghost"
+        size="icon"
+        title="Redo"
+      >
+        <Redo2 className="h-4 w-4" />
+      </Button>
+      <Separator orientation="vertical" className="h-6" />
+      <Button
         onClick={handleExecute}
         disabled={isExecuting || nodes.length === 0 || isGenerating}
         variant="ghost"
@@ -164,10 +203,10 @@ export function WorkflowToolbar({}: { workflowId?: string }) {
         onClick={handleSave}
         variant="ghost"
         size="icon"
-        disabled={!currentWorkflowId || isGenerating}
-        title="Save workflow"
+        disabled={!currentWorkflowId || isGenerating || isSaving}
+        title={isSaving ? 'Saving...' : 'Save workflow'}
       >
-        <Save className="h-4 w-4" />
+        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

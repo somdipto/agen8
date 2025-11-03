@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TimezoneSelect } from '@/components/ui/timezone-select';
 import Editor from '@monaco-editor/react';
 
 export function NodeConfigPanel() {
@@ -222,11 +223,13 @@ export function NodeConfigPanel() {
                       <Label htmlFor="scheduleTimezone" className="text-xs">
                         Timezone
                       </Label>
-                      <Input
+                      <TimezoneSelect
                         id="scheduleTimezone"
-                        value={(selectedNode.data.config?.scheduleTimezone as string) || ''}
-                        onChange={(e) => handleUpdateConfig('scheduleTimezone', e.target.value)}
-                        placeholder="America/New_York"
+                        value={
+                          (selectedNode.data.config?.scheduleTimezone as string) ||
+                          'America/New_York'
+                        }
+                        onValueChange={(value) => handleUpdateConfig('scheduleTimezone', value)}
                         disabled={isGenerating}
                       />
                     </div>
