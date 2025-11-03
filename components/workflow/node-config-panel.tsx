@@ -10,7 +10,18 @@ import {
 } from '@/lib/workflow-store';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, X, Hand, Webhook, Clock, Database, Mail, Ticket, Globe } from 'lucide-react';
+import {
+  Trash2,
+  X,
+  Hand,
+  Webhook,
+  Clock,
+  Database,
+  Mail,
+  Ticket,
+  Globe,
+  MessageSquare,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -286,6 +297,15 @@ export function NodeConfigPanel() {
                         </SelectItem>
                       </SelectGroup>
                       <SelectGroup>
+                        <SelectLabel>Messaging</SelectLabel>
+                        <SelectItem value="Send Slack Message">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4" />
+                            Send Slack Message
+                          </div>
+                        </SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
                         <SelectLabel>Project Management</SelectLabel>
                         <SelectItem value="Create Ticket">
                           <div className="flex items-center gap-2">
@@ -352,6 +372,37 @@ export function NodeConfigPanel() {
                         value={(selectedNode.data.config?.emailBody as string) || ''}
                         onChange={(e) => handleUpdateConfig('emailBody', e.target.value)}
                         placeholder="Email body content"
+                        disabled={isGenerating}
+                        rows={4}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Send Slack Message fields */}
+                {selectedNode.data.config?.actionType === 'Send Slack Message' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="slackChannel" className="text-xs">
+                        Channel
+                      </Label>
+                      <Input
+                        id="slackChannel"
+                        value={(selectedNode.data.config?.slackChannel as string) || ''}
+                        onChange={(e) => handleUpdateConfig('slackChannel', e.target.value)}
+                        placeholder="#general or @username"
+                        disabled={isGenerating}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="slackMessage" className="text-xs">
+                        Message
+                      </Label>
+                      <Textarea
+                        id="slackMessage"
+                        value={(selectedNode.data.config?.slackMessage as string) || ''}
+                        onChange={(e) => handleUpdateConfig('slackMessage', e.target.value)}
+                        placeholder="Your message text"
                         disabled={isGenerating}
                         rows={4}
                       />

@@ -13,6 +13,7 @@ export const user = pgTable('user', {
   resendApiKey: text('resend_api_key'),
   resendFromEmail: text('resend_from_email'),
   linearApiKey: text('linear_api_key'),
+  slackApiKey: text('slack_api_key'),
 });
 
 export const session = pgTable('session', {

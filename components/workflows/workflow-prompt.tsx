@@ -66,6 +66,7 @@ export function WorkflowPrompt() {
               disabled={isGenerating}
               required
               rows={3}
+              autoFocus
               className="w-full resize-none border-0 !bg-transparent p-4 text-base focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>

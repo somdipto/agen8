@@ -11,6 +11,7 @@ interface AppHeaderProps {
   showBackButton?: boolean;
   onBack?: () => void;
   actions?: React.ReactNode;
+  disableTitleLink?: boolean;
 }
 
 export function AppHeader({
@@ -18,6 +19,7 @@ export function AppHeader({
   showBackButton,
   onBack,
   actions,
+  disableTitleLink = false,
 }: AppHeaderProps) {
   const router = useRouter();
 
@@ -38,9 +40,13 @@ export function AppHeader({
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
-          <Link href="/" className="transition-opacity hover:opacity-80">
-            <h1 className="text-xl font-semibold">{title}</h1>
-          </Link>
+          {disableTitleLink ? (
+            <div className="text-xl font-semibold">{title}</div>
+          ) : (
+            <Link href="/" className="transition-opacity hover:opacity-80">
+              <h1 className="text-xl font-semibold">{title}</h1>
+            </Link>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {actions}

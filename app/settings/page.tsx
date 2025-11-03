@@ -23,8 +23,10 @@ interface Integrations {
   resendApiKey: string | null;
   resendFromEmail: string | null;
   linearApiKey: string | null;
+  slackApiKey: string | null;
   hasResendKey: boolean;
   hasLinearKey: boolean;
+  hasSlackKey: boolean;
 }
 
 interface DataSource {
@@ -51,6 +53,7 @@ export default function SettingsPage() {
   const [resendApiKey, setResendApiKey] = useState('');
   const [resendFromEmail, setResendFromEmail] = useState('');
   const [linearApiKey, setLinearApiKey] = useState('');
+  const [slackApiKey, setSlackApiKey] = useState('');
   const [savingIntegrations, setSavingIntegrations] = useState(false);
 
   // Data sources state
@@ -140,11 +143,13 @@ export default function SettingsPage() {
         resendApiKey?: string;
         resendFromEmail?: string;
         linearApiKey?: string;
+        slackApiKey?: string;
       } = {};
 
       if (resendApiKey) updates.resendApiKey = resendApiKey;
       if (resendFromEmail) updates.resendFromEmail = resendFromEmail;
       if (linearApiKey) updates.linearApiKey = linearApiKey;
+      if (slackApiKey) updates.slackApiKey = slackApiKey;
 
       const response = await fetch('/api/user/integrations', {
         method: 'PATCH',
@@ -156,6 +161,7 @@ export default function SettingsPage() {
         await loadIntegrations();
         setResendApiKey('');
         setLinearApiKey('');
+        setSlackApiKey('');
       }
     } catch (error) {
       console.error('Failed to save integrations:', error);
@@ -356,6 +362,42 @@ export default function SettingsPage() {
                       className="text-primary hover:underline"
                     >
                       linear.app/settings/api
+                    </a>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Slack</CardTitle>
+                <CardDescription>
+                  Configure your Slack Bot Token to send messages from workflows
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="slackApiKey">Bot Token</Label>
+                  <Input
+                    id="slackApiKey"
+                    type="password"
+                    value={slackApiKey}
+                    onChange={(e) => setSlackApiKey(e.target.value)}
+                    placeholder={
+                      integrations?.hasSlackKey
+                        ? 'Bot token is configured'
+                        : 'Enter your Slack Bot Token'
+                    }
+                  />
+                  <p className="text-muted-foreground text-sm">
+                    Create a Slack app and get your Bot Token from{' '}
+                    <a
+                      href="https://api.slack.com/apps"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      api.slack.com/apps
                     </a>
                   </p>
                 </div>

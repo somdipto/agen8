@@ -3,6 +3,7 @@ import 'server-only';
 import type { WorkflowNode, WorkflowEdge } from './workflow-store';
 import { sendEmail } from './integrations/resend';
 import { createTicket } from './integrations/linear';
+import { sendSlackMessage } from './integrations/slack';
 import { queryData } from './integrations/database';
 import { callApi } from './integrations/api';
 import { db } from './db';
@@ -25,6 +26,7 @@ interface UserIntegrations {
   resendApiKey?: string | null;
   resendFromEmail?: string | null;
   linearApiKey?: string | null;
+  slackApiKey?: string | null;
 }
 
 class ServerWorkflowExecutor {
@@ -55,6 +57,7 @@ class ServerWorkflowExecutor {
           resendApiKey: true,
           resendFromEmail: true,
           linearApiKey: true,
+          slackApiKey: true,
         },
       });
 
@@ -63,6 +66,7 @@ class ServerWorkflowExecutor {
           resendApiKey: userData.resendApiKey,
           resendFromEmail: userData.resendFromEmail,
           linearApiKey: userData.linearApiKey,
+          slackApiKey: userData.slackApiKey,
         };
       }
     } catch (error) {
@@ -146,6 +150,24 @@ class ServerWorkflowExecutor {
               };
               const emailResult = await sendEmail(emailParams);
               result = { success: emailResult.status === 'success', data: emailResult };
+            }
+          } else if (
+            actionType === 'Send Slack Message' ||
+            node.data.label.toLowerCase().includes('slack')
+          ) {
+            if (!this.userIntegrations.slackApiKey) {
+              result = {
+                success: false,
+                error: 'Slack API key not configured. Please configure in settings.',
+              };
+            } else {
+              const slackParams = {
+                channel: (this.context.input?.channel as string) || '#general',
+                text: (this.context.input?.message as string) || 'No message',
+                apiKey: this.userIntegrations.slackApiKey,
+              };
+              const slackResult = await sendSlackMessage(slackParams);
+              result = { success: slackResult.status === 'success', data: slackResult };
             }
           } else if (
             actionType === 'Create Ticket' ||

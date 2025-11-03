@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "slack_api_key" text;

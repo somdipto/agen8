@@ -9,6 +9,7 @@ import 'server-only';
 
 export * from './resend';
 export * from './linear';
+export * from './slack';
 export * from './database';
 export * from './api';
 

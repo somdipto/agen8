@@ -9,7 +9,7 @@ import {
   NodeDescription,
   NodeContent,
 } from '@/components/ai-elements/node';
-import { RefreshCw } from 'lucide-react';
+import { Shuffle } from 'lucide-react';
 import type { WorkflowNodeData } from '@/lib/workflow-store';
 
 export const TransformNode = memo(({ data, selected }: NodeProps) => {
@@ -22,7 +22,7 @@ export const TransformNode = memo(({ data, selected }: NodeProps) => {
     >
       <NodeHeader>
         <div className="flex items-center gap-2">
-          <RefreshCw className="h-4 w-4" />
+          <Shuffle className="h-4 w-4" />
           <NodeTitle>{nodeData.label}</NodeTitle>
         </div>
         {nodeData.description && <NodeDescription>{nodeData.description}</NodeDescription>}

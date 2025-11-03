@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
         resendApiKey: true,
         resendFromEmail: true,
         linearApiKey: true,
+        slackApiKey: true,
       },
     });
 
@@ -36,8 +37,10 @@ export async function GET(request: NextRequest) {
       resendApiKey: maskApiKey(userData.resendApiKey),
       resendFromEmail: userData.resendFromEmail,
       linearApiKey: maskApiKey(userData.linearApiKey),
+      slackApiKey: maskApiKey(userData.slackApiKey),
       hasResendKey: !!userData.resendApiKey,
       hasLinearKey: !!userData.linearApiKey,
+      hasSlackKey: !!userData.slackApiKey,
     });
   } catch (error) {
     console.error('Failed to fetch integrations:', error);
@@ -60,12 +63,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { resendApiKey, resendFromEmail, linearApiKey } = body;
+    const { resendApiKey, resendFromEmail, linearApiKey, slackApiKey } = body;
 
     const updates: {
       resendApiKey?: string | null;
       resendFromEmail?: string | null;
       linearApiKey?: string | null;
+      slackApiKey?: string | null;
     } = {};
 
     if (resendApiKey !== undefined) {
@@ -78,6 +82,10 @@ export async function PATCH(request: NextRequest) {
 
     if (linearApiKey !== undefined) {
       updates.linearApiKey = linearApiKey || null;
+    }
+
+    if (slackApiKey !== undefined) {
+      updates.slackApiKey = slackApiKey || null;
     }
 
     await db.update(user).set(updates).where(eq(user.id, session.user.id));

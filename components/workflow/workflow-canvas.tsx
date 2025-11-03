@@ -94,7 +94,15 @@ export function WorkflowCanvas() {
         elementsSelectable={!isGenerating}
       >
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-        <Controls />
+        <Controls
+          style={{
+            background: 'white',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+          }}
+          className="dark:!bg-[hsl(var(--card))]"
+        />
         <MiniMap className="!bg-secondary" />
       </ReactFlow>
     </div>

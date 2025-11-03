@@ -108,17 +108,6 @@ export function WorkflowsList({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-semibold">Loading workflows...</div>
-          <div className="text-muted-foreground text-sm">Please wait</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-background flex min-h-screen flex-col">
       <AppHeader />
@@ -176,13 +165,15 @@ export function WorkflowsList({
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h2 className="text-muted-foreground text-sm font-medium">
-                {workflows.length === 0
-                  ? 'No Workflows'
-                  : limit
-                    ? 'Recent Workflows'
-                    : 'All Workflows'}
+                {loading
+                  ? 'Loading...'
+                  : workflows.length === 0
+                    ? 'No Workflows'
+                    : limit
+                      ? 'Recent Workflows'
+                      : 'All Workflows'}
               </h2>
-              {enableSelection && displayedWorkflows.length > 0 && (
+              {enableSelection && displayedWorkflows.length > 0 && !loading && (
                 <Button variant="ghost" size="sm" onClick={handleSelectAll}>
                   {selectedIds.size === displayedWorkflows.length ? 'Deselect All' : 'Select All'}
                 </Button>
@@ -200,7 +191,7 @@ export function WorkflowsList({
                   Delete {selectedIds.size} {selectedIds.size === 1 ? 'Workflow' : 'Workflows'}
                 </Button>
               )}
-              {limit && workflows.length > limit && (
+              {limit && workflows.length > limit && !loading && (
                 <Button variant="ghost" size="sm" onClick={() => router.push('/workflows')}>
                   View All
                 </Button>
@@ -211,46 +202,54 @@ export function WorkflowsList({
               </Button>
             </div>
           </div>
-          {displayedWorkflows.length > 0 && (
-            <div className="divide-y">
-              {/* User's workflows */}
-              {displayedWorkflows.map((workflow) => (
-                <div
-                  key={workflow.id}
-                  className="hover:bg-accent/50 flex w-full items-center gap-3 px-4 py-4 transition-colors"
-                >
-                  {enableSelection && (
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(workflow.id)}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleToggleSelect(workflow.id);
-                      }}
-                      className="h-4 w-4 cursor-pointer rounded border-gray-300"
-                    />
-                  )}
-                  <button
-                    className="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
-                    onClick={() => handleOpenWorkflow(workflow.id)}
+
+          {/* Reserve minimum height to prevent layout shift */}
+          <div className="min-h-[240px]">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-muted-foreground text-sm">Loading workflows...</div>
+              </div>
+            ) : displayedWorkflows.length > 0 ? (
+              <div className="divide-y">
+                {/* User's workflows */}
+                {displayedWorkflows.map((workflow) => (
+                  <div
+                    key={workflow.id}
+                    className="hover:bg-accent/50 flex w-full items-center gap-3 px-4 py-4 transition-colors"
                   >
-                    <div className="mb-1 flex items-center justify-between gap-4">
-                      <div className="min-w-0 truncate font-medium">{workflow.name}</div>
-                      <div className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
-                        <Clock className="h-3 w-3" />
-                        <span>{getRelativeTime(workflow.updatedAt)}</span>
-                      </div>
-                    </div>
-                    {workflow.description && (
-                      <div className="text-muted-foreground line-clamp-1 text-sm">
-                        {workflow.description}
-                      </div>
+                    {enableSelection && (
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(workflow.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleToggleSelect(workflow.id);
+                        }}
+                        className="h-4 w-4 cursor-pointer rounded border-gray-300"
+                      />
                     )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <button
+                      className="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
+                      onClick={() => handleOpenWorkflow(workflow.id)}
+                    >
+                      <div className="mb-1 flex items-center justify-between gap-4">
+                        <div className="min-w-0 truncate font-medium">{workflow.name}</div>
+                        <div className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
+                          <Clock className="h-3 w-3" />
+                          <span>{getRelativeTime(workflow.updatedAt)}</span>
+                        </div>
+                      </div>
+                      {workflow.description && (
+                        <div className="text-muted-foreground line-clamp-1 text-sm">
+                          {workflow.description}
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 

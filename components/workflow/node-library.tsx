@@ -1,7 +1,7 @@
 'use client';
 
 import { useSetAtom } from 'jotai';
-import { PlayCircle, Zap, GitBranch, RefreshCw } from 'lucide-react';
+import { PlayCircle, Zap, GitBranch, Shuffle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { addNodeAtom, type WorkflowNode, type WorkflowNodeType } from '@/lib/workflow-store';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -32,7 +32,7 @@ const nodeTemplates = [
     type: 'transform' as WorkflowNodeType,
     label: 'Transform',
     description: 'Transform data',
-    icon: RefreshCw,
+    icon: Shuffle,
     defaultConfig: { transformType: 'Map Data' },
   },
 ];

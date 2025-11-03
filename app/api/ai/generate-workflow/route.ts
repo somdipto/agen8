@@ -53,6 +53,7 @@ TRIGGER NODES:
 
 ACTION NODES:
 - Send Email: { actionType: "Send Email", emailTo: "user@example.com", emailSubject: "Subject", emailBody: "Body text" }
+- Send Slack Message: { actionType: "Send Slack Message", slackChannel: "#general", slackMessage: "Message text" }
 - Create Ticket: { actionType: "Create Ticket", ticketTitle: "Title", ticketDescription: "Description", ticketPriority: "2" }
 - Database Query: { actionType: "Database Query", dbQuery: "SELECT * FROM users WHERE status = 'active'", dbTable: "users" }
 - HTTP Request: { actionType: "HTTP Request", httpMethod: "POST", endpoint: "https://api.example.com/endpoint", httpHeaders: "{}", httpBody: "{}" }
@@ -67,6 +68,7 @@ IMPORTANT:
 - For Database Query actions, ALWAYS include a realistic SQL query in the "dbQuery" field
 - For HTTP Request actions, include proper httpMethod, endpoint, httpHeaders, and httpBody
 - For Send Email actions, include emailTo, emailSubject, and emailBody
+- For Send Slack Message actions, include slackChannel and slackMessage
 - Position nodes in a left-to-right flow with proper spacing (x: 100, 400, 700, etc., y: 200)
 - Return ONLY valid JSON, no markdown or explanations`,
       prompt,

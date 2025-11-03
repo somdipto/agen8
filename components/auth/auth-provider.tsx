@@ -36,23 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   }
 
-  // Still loading
-  if (isPending) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-semibold">Loading...</div>
-          <div className="text-muted-foreground text-sm">Please wait</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Not logged in, show nothing (will redirect)
-  if (!session) {
-    return null;
-  }
-
-  // Logged in, show content
+  // Don't block rendering while checking auth
+  // The content will show immediately, and we'll redirect if needed
   return <>{children}</>;
 }
