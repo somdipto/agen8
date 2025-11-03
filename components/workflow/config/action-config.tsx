@@ -66,6 +66,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
                 Linear
               </SelectLabel>
               <SelectItem value="Create Ticket">Create Ticket</SelectItem>
+              <SelectItem value="Find Issues">Find Issues</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -193,6 +194,70 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
                 <SelectItem value="4">Low</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </>
+      )}
+
+      {/* Find Issues fields */}
+      {config?.actionType === 'Find Issues' && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="linearAssigneeId" className="text-xs">
+              Assignee (User ID)
+            </Label>
+            <Input
+              id="linearAssigneeId"
+              value={(config?.linearAssigneeId as string) || ''}
+              onChange={(e) => onUpdateConfig('linearAssigneeId', e.target.value)}
+              placeholder="user-id-123"
+              disabled={disabled}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="linearTeamId" className="text-xs">
+              Team ID (optional)
+            </Label>
+            <Input
+              id="linearTeamId"
+              value={(config?.linearTeamId as string) || ''}
+              onChange={(e) => onUpdateConfig('linearTeamId', e.target.value)}
+              placeholder="team-id-456"
+              disabled={disabled}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="linearStatus" className="text-xs">
+              Status (optional)
+            </Label>
+            <Select
+              value={(config?.linearStatus as string) || 'any'}
+              onValueChange={(value) => onUpdateConfig('linearStatus', value)}
+              disabled={disabled}
+            >
+              <SelectTrigger id="linearStatus">
+                <SelectValue placeholder="Any status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="backlog">Backlog</SelectItem>
+                <SelectItem value="todo">Todo</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
+                <SelectItem value="canceled">Canceled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="linearLabel" className="text-xs">
+              Label (optional)
+            </Label>
+            <Input
+              id="linearLabel"
+              value={(config?.linearLabel as string) || ''}
+              onChange={(e) => onUpdateConfig('linearLabel', e.target.value)}
+              placeholder="bug, feature, etc."
+              disabled={disabled}
+            />
           </div>
         </>
       )}
