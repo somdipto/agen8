@@ -18,7 +18,7 @@ export const ConditionNode = memo(({ data, selected }: NodeProps) => {
   return (
     <Node
       handles={{ target: true, source: true }}
-      className={selected ? 'ring-primary ring-2' : ''}
+      className={selected ? 'ring-primary rounded-md ring-2' : ''}
     >
       <NodeHeader>
         <div className="flex items-center gap-2">

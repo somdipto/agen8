@@ -10,18 +10,7 @@ import {
 } from '@/lib/workflow-store';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Trash2,
-  X,
-  Hand,
-  Webhook,
-  Clock,
-  Database,
-  Mail,
-  Ticket,
-  Globe,
-  MessageSquare,
-} from 'lucide-react';
+import { Trash2, X, Webhook, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { TimezoneSelect } from '@/components/ui/timezone-select';
+import { IntegrationIcon } from '@/components/ui/integration-icon';
 import Editor from '@monaco-editor/react';
 
 export function NodeConfigPanel() {
@@ -131,37 +121,20 @@ export function NodeConfigPanel() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>System</SelectLabel>
-                        <SelectItem value="Manual">
-                          <div className="flex items-center gap-2">
-                            <Hand className="h-4 w-4" />
-                            Manual
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Schedule">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Schedule
-                          </div>
-                        </SelectItem>
+                        <SelectLabel className="flex items-center gap-2">
+                          <Settings className="h-3 w-3" />
+                          System
+                        </SelectLabel>
+                        <SelectItem value="Manual">Manual</SelectItem>
+                        <SelectItem value="Schedule">Schedule</SelectItem>
+                        <SelectItem value="Database Event">Database Event</SelectItem>
                       </SelectGroup>
                       <SelectGroup>
-                        <SelectLabel>External</SelectLabel>
-                        <SelectItem value="Webhook">
-                          <div className="flex items-center gap-2">
-                            <Webhook className="h-4 w-4" />
-                            Webhook
-                          </div>
-                        </SelectItem>
-                      </SelectGroup>
-                      <SelectGroup>
-                        <SelectLabel>Database</SelectLabel>
-                        <SelectItem value="Database Event">
-                          <div className="flex items-center gap-2">
-                            <Database className="h-4 w-4" />
-                            Database Event
-                          </div>
-                        </SelectItem>
+                        <SelectLabel className="flex items-center gap-2">
+                          <Webhook className="h-3 w-3" />
+                          Webhooks
+                        </SelectLabel>
+                        <SelectItem value="Webhook">Webhook</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -291,49 +264,33 @@ export function NodeConfigPanel() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectLabel>Email</SelectLabel>
-                        <SelectItem value="Send Email">
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            Send Email
-                          </div>
-                        </SelectItem>
+                        <SelectLabel className="flex items-center gap-2">
+                          <Settings className="h-3 w-3" />
+                          System
+                        </SelectLabel>
+                        <SelectItem value="HTTP Request">HTTP Request</SelectItem>
+                        <SelectItem value="Database Query">Database Query</SelectItem>
                       </SelectGroup>
                       <SelectGroup>
-                        <SelectLabel>Messaging</SelectLabel>
-                        <SelectItem value="Send Slack Message">
-                          <div className="flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4" />
-                            Send Slack Message
-                          </div>
-                        </SelectItem>
+                        <SelectLabel className="flex items-center gap-2">
+                          <IntegrationIcon integration="resend" />
+                          Resend
+                        </SelectLabel>
+                        <SelectItem value="Send Email">Send Email</SelectItem>
                       </SelectGroup>
                       <SelectGroup>
-                        <SelectLabel>Project Management</SelectLabel>
-                        <SelectItem value="Create Ticket">
-                          <div className="flex items-center gap-2">
-                            <Ticket className="h-4 w-4" />
-                            Create Ticket
-                          </div>
-                        </SelectItem>
+                        <SelectLabel className="flex items-center gap-2">
+                          <IntegrationIcon integration="slack" />
+                          Slack
+                        </SelectLabel>
+                        <SelectItem value="Send Slack Message">Send Slack Message</SelectItem>
                       </SelectGroup>
                       <SelectGroup>
-                        <SelectLabel>Database</SelectLabel>
-                        <SelectItem value="Database Query">
-                          <div className="flex items-center gap-2">
-                            <Database className="h-4 w-4" />
-                            Database Query
-                          </div>
-                        </SelectItem>
-                      </SelectGroup>
-                      <SelectGroup>
-                        <SelectLabel>API</SelectLabel>
-                        <SelectItem value="HTTP Request">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4" />
-                            HTTP Request
-                          </div>
-                        </SelectItem>
+                        <SelectLabel className="flex items-center gap-2">
+                          <IntegrationIcon integration="linear" />
+                          Linear
+                        </SelectLabel>
+                        <SelectItem value="Create Ticket">Create Ticket</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>

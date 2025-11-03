@@ -1,7 +1,7 @@
 'use client';
 
 import { useSetAtom, useAtom } from 'jotai';
-import { PlayCircle, Zap, GitBranch, RefreshCw } from 'lucide-react';
+import { PlayCircle, Zap, GitBranch, Shuffle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import {
   addNodeAtom,
@@ -38,7 +38,7 @@ const nodeTemplates = [
     type: 'transform' as WorkflowNodeType,
     label: 'Transform',
     description: 'Transform data',
-    icon: RefreshCw,
+    icon: Shuffle,
     defaultConfig: { transformType: 'Map Data' },
   },
 ];
@@ -83,14 +83,14 @@ export function NodeToolbar() {
               onClick={() => handleAddNode(template)}
               variant="ghost"
               size="icon"
-              className="h-10 w-10 rounded-none p-1"
+              className="h-[26px] w-[26px] rounded-none p-0"
               title={template.label}
               disabled={isGenerating}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-4 w-4" />
             </Button>
             {index < nodeTemplates.length - 1 && (
-              <Separator orientation="vertical" className="bg-border h-10" />
+              <Separator orientation="vertical" className="bg-border h-[26px]" />
             )}
           </div>
         );
