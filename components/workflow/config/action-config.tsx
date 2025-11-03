@@ -83,7 +83,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="emailTo"
               value={(config?.emailTo as string) || ''}
               onChange={(e) => onUpdateConfig('emailTo', e.target.value)}
-              placeholder="user@example.com"
+              placeholder="user@example.com or {{NodeName.email}}"
               disabled={disabled}
             />
           </div>
@@ -95,7 +95,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="emailSubject"
               value={(config?.emailSubject as string) || ''}
               onChange={(e) => onUpdateConfig('emailSubject', e.target.value)}
-              placeholder="Email subject"
+              placeholder="Subject or {{NodeName.title}}"
               disabled={disabled}
             />
           </div>
@@ -107,7 +107,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="emailBody"
               value={(config?.emailBody as string) || ''}
               onChange={(e) => onUpdateConfig('emailBody', e.target.value)}
-              placeholder="Email body content"
+              placeholder="Email body. Use {{NodeName.field}} to insert data from previous nodes."
               disabled={disabled}
               rows={4}
             />
@@ -126,7 +126,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="slackChannel"
               value={(config?.slackChannel as string) || ''}
               onChange={(e) => onUpdateConfig('slackChannel', e.target.value)}
-              placeholder="#general or @username"
+              placeholder="#general or @username or {{NodeName.channel}}"
               disabled={disabled}
             />
           </div>
@@ -138,7 +138,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="slackMessage"
               value={(config?.slackMessage as string) || ''}
               onChange={(e) => onUpdateConfig('slackMessage', e.target.value)}
-              placeholder="Your message text"
+              placeholder="Your message. Use {{NodeName.field}} to insert data from previous nodes."
               disabled={disabled}
               rows={4}
             />
@@ -157,7 +157,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="ticketTitle"
               value={(config?.ticketTitle as string) || ''}
               onChange={(e) => onUpdateConfig('ticketTitle', e.target.value)}
-              placeholder="Bug report title"
+              placeholder="Bug report or {{NodeName.title}}"
               disabled={disabled}
             />
           </div>
@@ -169,7 +169,7 @@ export function ActionConfig({ config, onUpdateConfig, disabled }: ActionConfigP
               id="ticketDescription"
               value={(config?.ticketDescription as string) || ''}
               onChange={(e) => onUpdateConfig('ticketDescription', e.target.value)}
-              placeholder="Detailed description"
+              placeholder="Description. Use {{NodeName.field}} to insert data from previous nodes."
               disabled={disabled}
               rows={4}
             />

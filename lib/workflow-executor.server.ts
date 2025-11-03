@@ -9,6 +9,7 @@ import { callApi } from './integrations/api';
 import { db } from './db';
 import { workflowExecutionLogs, user } from './db/schema';
 import { eq } from 'drizzle-orm';
+import { processConfigTemplates, type NodeOutputs } from './utils/template';
 
 type ExecutionResult = {
   success: boolean;
@@ -33,6 +34,7 @@ class ServerWorkflowExecutor {
   private nodes: Map<string, WorkflowNode>;
   private edges: WorkflowEdge[];
   private results: Map<string, ExecutionResult>;
+  private nodeOutputs: NodeOutputs = {};
   private context: WorkflowExecutionContext;
   private userIntegrations: UserIntegrations = {};
 
@@ -117,6 +119,11 @@ class ServerWorkflowExecutor {
 
       let result: ExecutionResult = { success: true };
 
+      // Process templates in node configuration using outputs from previous nodes
+      const processedConfig = node.data.config
+        ? processConfigTemplates(node.data.config as Record<string, unknown>, this.nodeOutputs)
+        : {};
+
       switch (node.data.type) {
         case 'trigger':
           result = {
@@ -130,8 +137,8 @@ class ServerWorkflowExecutor {
           break;
 
         case 'action':
-          const actionType = node.data.config?.actionType as string;
-          const endpoint = node.data.config?.endpoint as string;
+          const actionType = processedConfig?.actionType as string;
+          const endpoint = processedConfig?.endpoint as string;
 
           // Determine the type of action and execute accordingly
           if (actionType === 'Send Email' || node.data.label.toLowerCase().includes('email')) {
@@ -142,9 +149,9 @@ class ServerWorkflowExecutor {
               };
             } else {
               const emailParams = {
-                to: (node.data.config?.emailTo as string) || 'user@example.com',
-                subject: (node.data.config?.emailSubject as string) || 'Notification',
-                body: (node.data.config?.emailBody as string) || 'No content',
+                to: (processedConfig?.emailTo as string) || 'user@example.com',
+                subject: (processedConfig?.emailSubject as string) || 'Notification',
+                body: (processedConfig?.emailBody as string) || 'No content',
                 apiKey: this.userIntegrations.resendApiKey,
                 fromEmail: this.userIntegrations.resendFromEmail || undefined,
               };
@@ -165,8 +172,8 @@ class ServerWorkflowExecutor {
               };
             } else {
               const slackParams = {
-                channel: (node.data.config?.slackChannel as string) || '#general',
-                text: (node.data.config?.slackMessage as string) || 'No message',
+                channel: (processedConfig?.slackChannel as string) || '#general',
+                text: (processedConfig?.slackMessage as string) || 'No message',
                 apiKey: this.userIntegrations.slackApiKey,
               };
               const slackResult = await sendSlackMessage(slackParams);
@@ -186,10 +193,10 @@ class ServerWorkflowExecutor {
               };
             } else {
               const ticketParams = {
-                title: (node.data.config?.ticketTitle as string) || 'New Ticket',
-                description: (node.data.config?.ticketDescription as string) || '',
-                priority: node.data.config?.ticketPriority
-                  ? parseInt(node.data.config.ticketPriority as string)
+                title: (processedConfig?.ticketTitle as string) || 'New Ticket',
+                description: (processedConfig?.ticketDescription as string) || '',
+                priority: processedConfig?.ticketPriority
+                  ? parseInt(processedConfig.ticketPriority as string)
                   : undefined,
                 apiKey: this.userIntegrations.linearApiKey,
               };
@@ -207,10 +214,10 @@ class ServerWorkflowExecutor {
               };
             } else {
               const findParams = {
-                assigneeId: node.data.config?.linearAssigneeId as string | undefined,
-                teamId: node.data.config?.linearTeamId as string | undefined,
-                status: node.data.config?.linearStatus as string | undefined,
-                label: node.data.config?.linearLabel as string | undefined,
+                assigneeId: processedConfig?.linearAssigneeId as string | undefined,
+                teamId: processedConfig?.linearTeamId as string | undefined,
+                status: processedConfig?.linearStatus as string | undefined,
+                label: processedConfig?.linearLabel as string | undefined,
                 apiKey: this.userIntegrations.linearApiKey,
               };
               const findResult = await findIssues(findParams);
@@ -226,12 +233,12 @@ class ServerWorkflowExecutor {
             const dbResult = await queryData('your_table', {});
             result = { success: dbResult.status === 'success', data: dbResult };
           } else if (actionType === 'HTTP Request' || endpoint) {
-            const httpMethod = (node.data.config?.httpMethod as string) || 'POST';
-            const httpHeaders = node.data.config?.httpHeaders
-              ? JSON.parse((node.data.config.httpHeaders as string) || '{}')
+            const httpMethod = (processedConfig?.httpMethod as string) || 'POST';
+            const httpHeaders = processedConfig?.httpHeaders
+              ? JSON.parse((processedConfig.httpHeaders as string) || '{}')
               : {};
-            const httpBody = node.data.config?.httpBody
-              ? JSON.parse((node.data.config.httpBody as string) || '{}')
+            const httpBody = processedConfig?.httpBody
+              ? JSON.parse((processedConfig.httpBody as string) || '{}')
               : this.context.input;
 
             const apiResult = await callApi({
@@ -253,7 +260,7 @@ class ServerWorkflowExecutor {
           break;
 
         case 'condition':
-          const condition = node.data.config?.condition as string;
+          const condition = processedConfig?.condition as string;
           // Evaluate condition (simplified - in production use a safe eval or expression parser)
           // For now, just return true
           const conditionResult = true;
@@ -261,7 +268,7 @@ class ServerWorkflowExecutor {
           break;
 
         case 'transform':
-          const transformType = node.data.config?.transformType as string;
+          const transformType = processedConfig?.transformType as string;
           result = {
             success: true,
             data: {
@@ -278,7 +285,14 @@ class ServerWorkflowExecutor {
       }
 
       this.results.set(node.id, result);
-      await this.logNodeExecution(node, 'success', this.context.input, result.data);
+
+      // Store node output for use in subsequent nodes
+      this.nodeOutputs[node.id] = {
+        label: node.data.label,
+        data: result.data,
+      };
+
+      await this.logNodeExecution(node, 'success', processedConfig, result.data);
 
       return result;
     } catch (error) {

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TriggerConfig } from './config/trigger-config';
 import { ActionConfig } from './config/action-config';
+import { AvailableOutputs } from './available-outputs';
 
 export function NodeConfigPanel() {
   const [selectedNodeId, setSelectedNodeId] = useAtom(selectedNodeAtom);
@@ -90,6 +91,11 @@ export function NodeConfigPanel() {
             disabled={isGenerating}
           />
         </div>
+
+        {/* Show available outputs from previous nodes */}
+        {(selectedNode.data.type === 'action' ||
+          selectedNode.data.type === 'condition' ||
+          selectedNode.data.type === 'transform') && <AvailableOutputs />}
 
         <div className="space-y-2">
           <Label className="text-sm font-medium">Configuration</Label>

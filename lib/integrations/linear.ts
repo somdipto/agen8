@@ -168,6 +168,7 @@ export interface FindIssuesResult {
     url: string;
     state: string;
   }>;
+  count?: number;
   error?: string;
 }
 
@@ -221,6 +222,7 @@ export async function findIssues(params: FindIssuesParams): Promise<FindIssuesRe
     return {
       status: 'success',
       issues: formattedIssues,
+      count: formattedIssues.length,
     };
   } catch (error) {
     return {
