@@ -31,6 +31,19 @@ export const onNodesChangeAtom = atom(null, (get, set, changes: NodeChange[]) =>
   const currentNodes = get(nodesAtom);
   const newNodes = applyNodeChanges(changes, currentNodes) as WorkflowNode[];
   set(nodesAtom, newNodes);
+
+  // Sync selection state with selectedNodeAtom
+  const selectedNode = newNodes.find((n) => n.selected);
+  if (selectedNode) {
+    set(selectedNodeAtom, selectedNode.id);
+  } else if (get(selectedNodeAtom)) {
+    // If no node is selected in ReactFlow but we have a selection, clear it
+    const currentSelection = get(selectedNodeAtom);
+    const stillExists = newNodes.find((n) => n.id === currentSelection);
+    if (!stillExists) {
+      set(selectedNodeAtom, null);
+    }
+  }
 });
 
 export const onEdgesChangeAtom = atom(null, (get, set, changes: EdgeChange[]) => {
@@ -47,8 +60,14 @@ export const addNodeAtom = atom(null, (get, set, node: WorkflowNode) => {
   set(historyAtom, [...history, { nodes: currentNodes, edges: currentEdges }]);
   set(futureAtom, []);
 
-  const newNodes = [...currentNodes, node];
+  // Deselect all existing nodes and add new node as selected
+  const updatedNodes = currentNodes.map((n) => ({ ...n, selected: false }));
+  const newNode = { ...node, selected: true };
+  const newNodes = [...updatedNodes, newNode];
   set(nodesAtom, newNodes);
+
+  // Auto-select the newly added node
+  set(selectedNodeAtom, node.id);
 });
 
 export const updateNodeDataAtom = atom(

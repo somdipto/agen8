@@ -184,6 +184,11 @@
   min-height: 100px;
 }
 
+/* Remove ReactFlow default node shadow */
+.react-flow__node {
+  box-shadow: none !important;
+}
+
 button {
   cursor: pointer;
 }
