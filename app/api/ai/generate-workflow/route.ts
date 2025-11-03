@@ -44,13 +44,31 @@ Return a JSON object with this structure:
 }
 
 Node types and their configs:
-- trigger: { triggerType: "Manual|Webhook|Schedule" }
-- action: { actionType: "HTTP Request|Database Query", endpoint: "url" }
-- condition: { condition: "expression" }
-- transform: { transformType: "Map Data|Filter|Aggregate" }
 
-Position nodes in a left-to-right flow with proper spacing (x: 100, 400, 700, etc., y: 200).
-Return ONLY valid JSON, no markdown or explanations.`,
+TRIGGER NODES:
+- Manual: { triggerType: "Manual" }
+- Webhook: { triggerType: "Webhook", webhookPath: "/webhooks/name", webhookMethod: "POST" }
+- Schedule: { triggerType: "Schedule", scheduleCron: "0 9 * * *", scheduleTimezone: "America/New_York" }
+- Database Event: { triggerType: "Database Event", dbEventTable: "table_name", dbEventType: "INSERT" }
+
+ACTION NODES:
+- Send Email: { actionType: "Send Email", emailTo: "user@example.com", emailSubject: "Subject", emailBody: "Body text" }
+- Create Ticket: { actionType: "Create Ticket", ticketTitle: "Title", ticketDescription: "Description", ticketPriority: "2" }
+- Database Query: { actionType: "Database Query", dbQuery: "SELECT * FROM users WHERE status = 'active'", dbTable: "users" }
+- HTTP Request: { actionType: "HTTP Request", httpMethod: "POST", endpoint: "https://api.example.com/endpoint", httpHeaders: "{}", httpBody: "{}" }
+
+CONDITION NODES:
+- { condition: "status === 'active'" }
+
+TRANSFORM NODES:
+- { transformType: "Map Data" }
+
+IMPORTANT: 
+- For Database Query actions, ALWAYS include a realistic SQL query in the "dbQuery" field
+- For HTTP Request actions, include proper httpMethod, endpoint, httpHeaders, and httpBody
+- For Send Email actions, include emailTo, emailSubject, and emailBody
+- Position nodes in a left-to-right flow with proper spacing (x: 100, 400, 700, etc., y: 200)
+- Return ONLY valid JSON, no markdown or explanations`,
       prompt,
       temperature: 0.7,
     });
