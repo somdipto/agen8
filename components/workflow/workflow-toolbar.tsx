@@ -3,7 +3,14 @@
 import { useAtom, useSetAtom } from 'jotai';
 import { Play, Download, Upload, Trash2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { clearWorkflowAtom, isExecutingAtom, nodesAtom, edgesAtom, updateNodeDataAtom, saveWorkflowAsAtom } from '@/lib/workflow-store';
+import {
+  clearWorkflowAtom,
+  isExecutingAtom,
+  nodesAtom,
+  edgesAtom,
+  updateNodeDataAtom,
+  saveWorkflowAsAtom,
+} from '@/lib/workflow-store';
 import { executeWorkflow } from '@/lib/workflow-executor';
 
 export function WorkflowToolbar() {
@@ -83,19 +90,15 @@ export function WorkflowToolbar() {
   };
 
   return (
-    <div className="flex items-center justify-between border-b bg-background px-4 py-3">
+    <div className="bg-background flex items-center justify-between border-b px-4 py-3">
       <div className="flex items-center gap-2">
         <h1 className="text-xl font-semibold">Workflow Builder</h1>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-muted-foreground text-sm">
           {nodes.length} nodes, {edges.length} connections
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          onClick={handleExecute}
-          disabled={isExecuting || nodes.length === 0}
-          size="sm"
-        >
+        <Button onClick={handleExecute} disabled={isExecuting || nodes.length === 0} size="sm">
           <Play className="h-4 w-4" />
           {isExecuting ? 'Running...' : 'Run'}
         </Button>
@@ -111,12 +114,7 @@ export function WorkflowToolbar() {
           <Upload className="h-4 w-4" />
           Import
         </Button>
-        <Button
-          onClick={handleClear}
-          variant="destructive"
-          size="sm"
-          disabled={nodes.length === 0}
-        >
+        <Button onClick={handleClear} variant="destructive" size="sm" disabled={nodes.length === 0}>
           <Trash2 className="h-4 w-4" />
           Clear
         </Button>
@@ -124,4 +122,3 @@ export function WorkflowToolbar() {
     </div>
   );
 }
-

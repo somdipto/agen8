@@ -28,13 +28,14 @@ import { TransformNode } from './nodes/transform-node';
 import { v4 as uuidv4 } from 'uuid';
 
 export function WorkflowCanvas() {
-  const [nodes, setNodes] = useAtom(nodesAtom);
+  const [nodes] = useAtom(nodesAtom);
   const [edges, setEdges] = useAtom(edgesAtom);
   const onNodesChange = useSetAtom(onNodesChangeAtom);
   const onEdgesChange = useSetAtom(onEdgesChangeAtom);
   const setSelectedNode = useSetAtom(selectedNodeAtom);
 
-  const nodeTypes = useMemo(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nodeTypes = useMemo<Record<string, React.ComponentType<any>>>(
     () => ({
       trigger: TriggerNode,
       action: ActionNode,
@@ -57,6 +58,7 @@ export function WorkflowCanvas() {
   );
 
   const onNodeClick = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (_event: React.MouseEvent, node: any) => {
       setSelectedNode(node.id);
     },
@@ -84,4 +86,3 @@ export function WorkflowCanvas() {
     </div>
   );
 }
-

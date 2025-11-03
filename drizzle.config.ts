@@ -11,4 +11,3 @@ export default {
     url: process.env.DATABASE_URL || 'postgres://localhost:5432/workflow',
   },
 } satisfies Config;
-

@@ -21,7 +21,7 @@ function WorkflowApp() {
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <div className="text-lg font-semibold">Loading workflow...</div>
-          <div className="text-sm text-muted-foreground">Please wait</div>
+          <div className="text-muted-foreground text-sm">Please wait</div>
         </div>
       </div>
     );

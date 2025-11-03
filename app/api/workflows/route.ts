@@ -10,10 +10,7 @@ export async function GET() {
     return NextResponse.json(allWorkflows);
   } catch (error) {
     console.error('Failed to fetch workflows:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch workflows' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch workflows' }, { status: 500 });
   }
 }
 
@@ -24,10 +21,7 @@ export async function POST(request: NextRequest) {
     const { name, description, nodes, edges } = body;
 
     if (!name || !nodes || !edges) {
-      return NextResponse.json(
-        { error: 'Name, nodes, and edges are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Name, nodes, and edges are required' }, { status: 400 });
     }
 
     const [newWorkflow] = await db
@@ -43,10 +37,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newWorkflow, { status: 201 });
   } catch (error) {
     console.error('Failed to create workflow:', error);
-    return NextResponse.json(
-      { error: 'Failed to create workflow' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create workflow' }, { status: 500 });
   }
 }
-

@@ -24,9 +24,7 @@ class WorkflowExecutor {
   }
 
   private getNextNodes(nodeId: string): string[] {
-    return this.edges
-      .filter((edge) => edge.source === nodeId)
-      .map((edge) => edge.target);
+    return this.edges.filter((edge) => edge.source === nodeId).map((edge) => edge.target);
   }
 
   private getTriggerNodes(): WorkflowNode[] {
@@ -96,7 +94,10 @@ class WorkflowExecutor {
     }
   }
 
-  private async executeSequentially(nodeId: string, visited: Set<string> = new Set()): Promise<void> {
+  private async executeSequentially(
+    nodeId: string,
+    visited: Set<string> = new Set()
+  ): Promise<void> {
     if (visited.has(nodeId)) {
       return; // Prevent cycles
     }
@@ -141,4 +142,3 @@ export async function executeWorkflow(
   const executor = new WorkflowExecutor(nodes, edges, onNodeUpdate);
   return await executor.execute();
 }
-

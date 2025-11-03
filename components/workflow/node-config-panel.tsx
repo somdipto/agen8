@@ -1,7 +1,12 @@
 'use client';
 
 import { useAtom, useSetAtom } from 'jotai';
-import { selectedNodeAtom, nodesAtom, updateNodeDataAtom, deleteNodeAtom } from '@/lib/workflow-store';
+import {
+  selectedNodeAtom,
+  nodesAtom,
+  updateNodeDataAtom,
+  deleteNodeAtom,
+} from '@/lib/workflow-store';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2, X } from 'lucide-react';
@@ -23,9 +28,7 @@ export function NodeConfigPanel() {
           <CardTitle className="text-lg">Properties</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground">
-            Select a node to configure
-          </div>
+          <div className="text-muted-foreground text-sm">Select a node to configure</div>
         </CardContent>
       </Card>
     );
@@ -87,7 +90,9 @@ export function NodeConfigPanel() {
           <div className="space-y-2">
             {selectedNode.data.type === 'trigger' && (
               <div className="space-y-2">
-                <Label htmlFor="triggerType" className="text-xs">Trigger Type</Label>
+                <Label htmlFor="triggerType" className="text-xs">
+                  Trigger Type
+                </Label>
                 <Input
                   id="triggerType"
                   value={(selectedNode.data.config?.triggerType as string) || ''}
@@ -100,7 +105,9 @@ export function NodeConfigPanel() {
             {selectedNode.data.type === 'action' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="actionType" className="text-xs">Action Type</Label>
+                  <Label htmlFor="actionType" className="text-xs">
+                    Action Type
+                  </Label>
                   <Input
                     id="actionType"
                     value={(selectedNode.data.config?.actionType as string) || ''}
@@ -109,7 +116,9 @@ export function NodeConfigPanel() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="endpoint" className="text-xs">Endpoint</Label>
+                  <Label htmlFor="endpoint" className="text-xs">
+                    Endpoint
+                  </Label>
                   <Input
                     id="endpoint"
                     value={(selectedNode.data.config?.endpoint as string) || ''}
@@ -122,7 +131,9 @@ export function NodeConfigPanel() {
 
             {selectedNode.data.type === 'condition' && (
               <div className="space-y-2">
-                <Label htmlFor="condition" className="text-xs">Condition</Label>
+                <Label htmlFor="condition" className="text-xs">
+                  Condition
+                </Label>
                 <Input
                   id="condition"
                   value={(selectedNode.data.config?.condition as string) || ''}
@@ -134,7 +145,9 @@ export function NodeConfigPanel() {
 
             {selectedNode.data.type === 'transform' && (
               <div className="space-y-2">
-                <Label htmlFor="transformType" className="text-xs">Transform Type</Label>
+                <Label htmlFor="transformType" className="text-xs">
+                  Transform Type
+                </Label>
                 <Input
                   id="transformType"
                   value={(selectedNode.data.config?.transformType as string) || ''}
@@ -146,13 +159,9 @@ export function NodeConfigPanel() {
           </div>
         </div>
 
-        <div className="pt-4 border-t">
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
+        <div className="border-t pt-4">
+          <Button variant="destructive" className="w-full" onClick={handleDelete}>
+            <Trash2 className="mr-2 h-4 w-4" />
             Delete Node
           </Button>
         </div>
@@ -160,4 +169,3 @@ export function NodeConfigPanel() {
     </Card>
   );
 }
-

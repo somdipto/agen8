@@ -40,13 +40,19 @@ const nodeTemplates = [
 export function NodeLibrary() {
   const addNode = useSetAtom(addNodeAtom);
 
-  const handleAddNode = (template: typeof nodeTemplates[0]) => {
+  const handleAddNode = (template: (typeof nodeTemplates)[0]) => {
+    // Generate random position - this is fine in event handlers
+    // eslint-disable-next-line react-hooks/purity
+    const randomX = Math.random() * 300 + 100;
+    // eslint-disable-next-line react-hooks/purity
+    const randomY = Math.random() * 300 + 100;
+
     const newNode: WorkflowNode = {
       id: uuidv4(),
       type: template.type,
       position: {
-        x: Math.random() * 300 + 100,
-        y: Math.random() * 300 + 100,
+        x: randomX,
+        y: randomY,
       },
       data: {
         label: template.label,
@@ -72,15 +78,13 @@ export function NodeLibrary() {
             <button
               key={template.type}
               onClick={() => handleAddNode(template)}
-              className="w-full rounded-lg border bg-card p-3 text-left transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="bg-card hover:bg-accent hover:text-accent-foreground w-full rounded-lg border p-3 text-left transition-colors"
             >
               <div className="flex items-start gap-3">
-                <Icon className="h-5 w-5 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm">{template.label}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {template.description}
-                  </div>
+                <Icon className="mt-0.5 h-5 w-5" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">{template.label}</div>
+                  <div className="text-muted-foreground text-xs">{template.description}</div>
                 </div>
               </div>
             </button>
@@ -90,4 +94,3 @@ export function NodeLibrary() {
     </Card>
   );
 }
-

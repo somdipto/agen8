@@ -30,10 +30,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Failed to fetch current workflow:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch current workflow' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch current workflow' }, { status: 500 });
   }
 }
 
@@ -44,10 +41,7 @@ export async function PUT(request: NextRequest) {
     const { nodes, edges } = body;
 
     if (!nodes || !edges) {
-      return NextResponse.json(
-        { error: 'Nodes and edges are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Nodes and edges are required' }, { status: 400 });
     }
 
     // Check if current workflow exists
@@ -90,10 +84,6 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to save current workflow:', error);
-    return NextResponse.json(
-      { error: 'Failed to save current workflow' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to save current workflow' }, { status: 500 });
   }
 }
-
