@@ -127,27 +127,27 @@
 }
 
 .react-flow__node.selected {
-  box-shadow: 0 0 0 2px hsl(var(--primary));
+  box-shadow: 0 0 0 2px var(--primary);
 }
 
 .react-flow__edge-path {
-  stroke: hsl(var(--muted-foreground));
+  stroke: var(--muted-foreground);
   stroke-width: 2;
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: hsl(var(--primary));
+  stroke: var(--primary);
 }
 
 .react-flow__handle {
   width: 10px;
   height: 10px;
-  background: hsl(var(--primary));
-  border: 2px solid hsl(var(--background));
+  background: var(--primary);
+  border: 2px solid var(--background);
 }
 
 .react-flow__handle:hover {
-  background: hsl(var(--primary-foreground));
+  background: var(--primary-foreground);
 }
 
 .react-flow__controls {
@@ -155,27 +155,27 @@
   border-radius: 0.5rem;
   
   button {
-    background: hsl(var(--background));
-    border-color: hsl(var(--border));
-    color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
+    background: var(--background);
+    border-color: var(--border);
+    color: var(--foreground);
+    border: 1px solid var(--border);
   }
   
   button:hover {
-    background: hsl(var(--accent));
+    background: var(--accent);
   }
   
   button svg {
-    fill: hsl(var(--foreground));
+    fill: var(--foreground);
   }
 }
 
 .react-flow__minimap {
-  background: hsl(var(--secondary));
+  background: var(--secondary);
 }
 
 .react-flow__background {
-  background-color: hsl(var(--background));
+  background-color: var(--background);
 }
 
 /* Node Width */
