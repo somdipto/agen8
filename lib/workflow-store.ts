@@ -1,7 +1,7 @@
 import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
 import type { Node, Edge, NodeChange, EdgeChange } from '@xyflow/react';
 import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
+import { workflowApi } from './workflow-api';
 
 export type WorkflowNodeType = 'trigger' | 'action' | 'condition' | 'transform';
 
@@ -16,18 +16,25 @@ export type WorkflowNodeData = {
 export type WorkflowNode = Node<WorkflowNodeData>;
 export type WorkflowEdge = Edge;
 
-// Atoms for workflow state
-export const nodesAtom = atomWithStorage<WorkflowNode[]>('workflow-nodes', []);
-export const edgesAtom = atomWithStorage<WorkflowEdge[]>('workflow-edges', []);
+// Atoms for workflow state (now backed by database)
+export const nodesAtom = atom<WorkflowNode[]>([]);
+export const edgesAtom = atom<WorkflowEdge[]>([]);
 export const selectedNodeAtom = atom<string | null>(null);
 export const isExecutingAtom = atom(false);
+export const isLoadingAtom = atom(false);
+export const currentWorkflowIdAtom = atom<string | null>(null);
 
-// Derived atoms for node/edge operations
+// Derived atoms for node/edge operations with auto-save
 export const onNodesChangeAtom = atom(
   null,
   (get, set, changes: NodeChange[]) => {
     const currentNodes = get(nodesAtom);
-    set(nodesAtom, applyNodeChanges(changes, currentNodes));
+    const newNodes = applyNodeChanges(changes, currentNodes);
+    set(nodesAtom, newNodes);
+    
+    // Auto-save to database
+    const currentEdges = get(edgesAtom);
+    workflowApi.autoSaveCurrent(newNodes, currentEdges);
   }
 );
 
@@ -35,7 +42,12 @@ export const onEdgesChangeAtom = atom(
   null,
   (get, set, changes: EdgeChange[]) => {
     const currentEdges = get(edgesAtom);
-    set(edgesAtom, applyEdgeChanges(changes, currentEdges));
+    const newEdges = applyEdgeChanges(changes, currentEdges);
+    set(edgesAtom, newEdges);
+    
+    // Auto-save to database
+    const currentNodes = get(nodesAtom);
+    workflowApi.autoSaveCurrent(currentNodes, newEdges);
   }
 );
 
@@ -43,7 +55,12 @@ export const addNodeAtom = atom(
   null,
   (get, set, node: WorkflowNode) => {
     const currentNodes = get(nodesAtom);
-    set(nodesAtom, [...currentNodes, node]);
+    const newNodes = [...currentNodes, node];
+    set(nodesAtom, newNodes);
+    
+    // Auto-save to database
+    const currentEdges = get(edgesAtom);
+    workflowApi.autoSaveCurrent(newNodes, currentEdges);
   }
 );
 
@@ -51,12 +68,14 @@ export const updateNodeDataAtom = atom(
   null,
   (get, set, { id, data }: { id: string; data: Partial<WorkflowNodeData> }) => {
     const currentNodes = get(nodesAtom);
-    set(
-      nodesAtom,
-      currentNodes.map((node) =>
-        node.id === id ? { ...node, data: { ...node.data, ...data } } : node
-      )
+    const newNodes = currentNodes.map((node) =>
+      node.id === id ? { ...node, data: { ...node.data, ...data } } : node
     );
+    set(nodesAtom, newNodes);
+    
+    // Auto-save to database
+    const currentEdges = get(edgesAtom);
+    workflowApi.autoSaveCurrent(newNodes, currentEdges);
   }
 );
 
@@ -66,14 +85,20 @@ export const deleteNodeAtom = atom(
     const currentNodes = get(nodesAtom);
     const currentEdges = get(edgesAtom);
     
-    set(nodesAtom, currentNodes.filter((node) => node.id !== nodeId));
-    set(edgesAtom, currentEdges.filter(
+    const newNodes = currentNodes.filter((node) => node.id !== nodeId);
+    const newEdges = currentEdges.filter(
       (edge) => edge.source !== nodeId && edge.target !== nodeId
-    ));
+    );
+    
+    set(nodesAtom, newNodes);
+    set(edgesAtom, newEdges);
     
     if (get(selectedNodeAtom) === nodeId) {
       set(selectedNodeAtom, null);
     }
+    
+    // Auto-save to database
+    workflowApi.autoSaveCurrent(newNodes, newEdges);
   }
 );
 
@@ -83,6 +108,46 @@ export const clearWorkflowAtom = atom(
     set(nodesAtom, []);
     set(edgesAtom, []);
     set(selectedNodeAtom, null);
+    
+    // Auto-save to database
+    workflowApi.autoSaveCurrent([], []);
+  }
+);
+
+// Load workflow from database
+export const loadWorkflowAtom = atom(
+  null,
+  async (_get, set) => {
+    try {
+      set(isLoadingAtom, true);
+      const workflow = await workflowApi.getCurrent();
+      set(nodesAtom, workflow.nodes);
+      set(edgesAtom, workflow.edges);
+      if (workflow.id) {
+        set(currentWorkflowIdAtom, workflow.id);
+      }
+    } catch (error) {
+      console.error('Failed to load workflow:', error);
+    } finally {
+      set(isLoadingAtom, false);
+    }
+  }
+);
+
+// Save workflow with a name
+export const saveWorkflowAsAtom = atom(
+  null,
+  async (get, _set, { name, description }: { name: string; description?: string }) => {
+    const nodes = get(nodesAtom);
+    const edges = get(edgesAtom);
+    
+    try {
+      const workflow = await workflowApi.create({ name, description, nodes, edges });
+      return workflow;
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
+      throw error;
+    }
   }
 );
 

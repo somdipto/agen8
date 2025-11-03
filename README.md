@@ -36,9 +36,11 @@ A powerful, n8n-style workflow automation application built with Next.js, React 
    - Aggregate values
 
 ### 💾 **Workflow Management**
-- **Export**: Save workflows as JSON files
+- **Database Persistence**: Workflows stored in PostgreSQL with Drizzle ORM
+- **Auto-save**: Changes automatically saved to database (2-second debounce)
+- **Save As**: Create named workflow versions
+- **Export**: Download workflows as JSON files
 - **Import**: Load workflows from JSON files
-- **Auto-save**: Workflows persist in localStorage
 - **Clear**: Reset the entire workflow
 
 ### ⚡ **Execution Engine**
@@ -58,6 +60,7 @@ A powerful, n8n-style workflow automation application built with Next.js, React 
 - **Framework**: Next.js 16 (App Router)
 - **UI Library**: React 19
 - **State Management**: Jotai
+- **Database**: PostgreSQL with Drizzle ORM
 - **Workflow Engine**: React Flow (@xyflow/react)
 - **Styling**: Tailwind CSS 4
 - **UI Components**: AI Elements + Custom shadcn/ui components
@@ -69,6 +72,7 @@ A powerful, n8n-style workflow automation application built with Next.js, React 
 ### Prerequisites
 - Node.js 20+
 - pnpm (recommended) or npm
+- PostgreSQL 14+ (local or cloud)
 
 ### Installation
 
@@ -83,12 +87,24 @@ cd v8-workflow
 pnpm install
 \`\`\`
 
-3. Run the development server:
+3. Set up the database:
+\`\`\`bash
+# Create a .env.local file with your database URL
+echo "DATABASE_URL=postgres://localhost:5432/workflow" > .env.local
+
+# Or use a cloud database (Neon, Supabase, Vercel Postgres, etc.)
+# DATABASE_URL=postgres://user:password@host:port/database
+
+# Generate and push the database schema
+pnpm db:push
+\`\`\`
+
+4. Run the development server:
 \`\`\`bash
 pnpm dev
 \`\`\`
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Usage
 
@@ -114,47 +130,72 @@ Here's a simple example workflow:
 3. **Condition Node** → Check if the response was successful
 4. **Transform Node** → Process and format the data
 
-## Project Structure
+## Database Setup
 
+### Local PostgreSQL
+
+\`\`\`bash
+# Install PostgreSQL (macOS with Homebrew)
+brew install postgresql
+brew services start postgresql
+
+# Create database
+createdb workflow
+
+# Set DATABASE_URL in .env.local
+echo "DATABASE_URL=postgres://localhost:5432/workflow" > .env.local
+
+# Push schema to database
+pnpm db:push
 \`\`\`
-v8-workflow/
-├── app/
-│   ├── page.tsx              # Main application page
-│   ├── layout.tsx            # Root layout
-│   └── globals.css           # Global styles
-├── components/
-│   ├── ai-elements/
-│   │   └── node.tsx          # AI Elements Node component
-│   ├── ui/                   # shadcn/ui components
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── input.tsx
-│   │   └── label.tsx
-│   └── workflow/
-│       ├── workflow-canvas.tsx      # Main canvas component
-│       ├── workflow-toolbar.tsx     # Toolbar with controls
-│       ├── node-library.tsx         # Node library sidebar
-│       ├── node-config-panel.tsx    # Configuration panel
-│       └── nodes/
-│           ├── trigger-node.tsx
-│           ├── action-node.tsx
-│           ├── condition-node.tsx
-│           └── transform-node.tsx
-├── lib/
-│   ├── workflow-store.ts     # Jotai state management
-│   ├── workflow-executor.ts  # Workflow execution engine
-│   └── utils.ts              # Utility functions
-└── package.json
+
+### Cloud Database Options
+
+**Neon (Recommended - Free tier available):**
+\`\`\`bash
+# Sign up at https://neon.tech
+# Copy connection string to .env.local
+DATABASE_URL=postgres://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb
+\`\`\`
+
+**Vercel Postgres:**
+\`\`\`bash
+# Create database in Vercel dashboard
+# Copy connection string
+DATABASE_URL=postgres://default:xxx@xxx.postgres.vercel-storage.com:5432/verceldb
+\`\`\`
+
+**Supabase:**
+\`\`\`bash
+# Create project at https://supabase.com
+# Copy connection string from Settings > Database
+DATABASE_URL=postgres://postgres:password@db.xxx.supabase.co:5432/postgres
+\`\`\`
+
+### Database Commands
+
+\`\`\`bash
+# Generate migrations
+pnpm db:generate
+
+# Push schema changes to database
+pnpm db:push
+
+# Open Drizzle Studio (database GUI)
+pnpm db:studio
 \`\`\`
 
 ## State Management
 
 The application uses Jotai for state management with the following atoms:
 
-- `nodesAtom`: Stores all workflow nodes (persisted in localStorage)
-- `edgesAtom`: Stores all connections between nodes (persisted in localStorage)
+- `nodesAtom`: Stores all workflow nodes (persisted in database)
+- `edgesAtom`: Stores all connections between nodes (persisted in database)
 - `selectedNodeAtom`: Tracks the currently selected node
 - `isExecutingAtom`: Tracks workflow execution state
+- `isLoadingAtom`: Tracks workflow loading state
+
+All changes are automatically saved to the database with a 2-second debounce to optimize performance.
 
 ## Customization
 

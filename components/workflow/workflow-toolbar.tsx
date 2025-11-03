@@ -1,17 +1,18 @@
 'use client';
 
 import { useAtom, useSetAtom } from 'jotai';
-import { Play, Download, Upload, Trash2 } from 'lucide-react';
+import { Play, Download, Upload, Trash2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { clearWorkflowAtom, isExecutingAtom, nodesAtom, edgesAtom, updateNodeDataAtom } from '@/lib/workflow-store';
+import { clearWorkflowAtom, isExecutingAtom, nodesAtom, edgesAtom, updateNodeDataAtom, saveWorkflowAsAtom } from '@/lib/workflow-store';
 import { executeWorkflow } from '@/lib/workflow-executor';
 
 export function WorkflowToolbar() {
-  const [nodes] = useAtom(nodesAtom);
-  const [edges] = useAtom(edgesAtom);
+  const [nodes, setNodes] = useAtom(nodesAtom);
+  const [edges, setEdges] = useAtom(edgesAtom);
   const [isExecuting, setIsExecuting] = useAtom(isExecutingAtom);
   const clearWorkflow = useSetAtom(clearWorkflowAtom);
   const updateNodeData = useSetAtom(updateNodeDataAtom);
+  const saveWorkflowAs = useSetAtom(saveWorkflowAsAtom);
 
   const handleExecute = async () => {
     setIsExecuting(true);
@@ -21,6 +22,21 @@ export function WorkflowToolbar() {
       });
     } finally {
       setIsExecuting(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const name = prompt('Enter workflow name:');
+    if (!name) return;
+
+    const description = prompt('Enter workflow description (optional):');
+
+    try {
+      await saveWorkflowAs({ name, description: description || undefined });
+      alert('Workflow saved successfully!');
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
+      alert('Failed to save workflow. Please try again.');
     }
   };
 
@@ -48,11 +64,9 @@ export function WorkflowToolbar() {
       try {
         const text = await file.text();
         const workflow = JSON.parse(text);
-        // We'll use the storage mechanism which will trigger an update
         if (workflow.nodes && workflow.edges) {
-          localStorage.setItem('workflow-nodes', JSON.stringify(workflow.nodes));
-          localStorage.setItem('workflow-edges', JSON.stringify(workflow.edges));
-          window.location.reload();
+          setNodes(workflow.nodes);
+          setEdges(workflow.edges);
         }
       } catch (error) {
         console.error('Failed to import workflow:', error);
@@ -84,6 +98,10 @@ export function WorkflowToolbar() {
         >
           <Play className="h-4 w-4" />
           {isExecuting ? 'Running...' : 'Run'}
+        </Button>
+        <Button onClick={handleSave} variant="outline" size="sm" disabled={nodes.length === 0}>
+          <Save className="h-4 w-4" />
+          Save As
         </Button>
         <Button onClick={handleExport} variant="outline" size="sm" disabled={nodes.length === 0}>
           <Download className="h-4 w-4" />
