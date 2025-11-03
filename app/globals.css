@@ -151,14 +151,22 @@
 }
 
 .react-flow__controls {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border-radius: 0.5rem;
+  
   button {
     background: hsl(var(--background));
     border-color: hsl(var(--border));
     color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
   }
   
   button:hover {
     background: hsl(var(--accent));
+  }
+  
+  button svg {
+    fill: hsl(var(--foreground));
   }
 }
 
@@ -174,4 +182,8 @@
 .node-container {
   width: 280px;
   min-height: 100px;
+}
+
+button {
+  cursor: pointer;
 }

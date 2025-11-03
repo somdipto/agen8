@@ -18,10 +18,13 @@
   "dependencies": {
     "@linear/sdk": "^63.2.0",
     "@monaco-editor/react": "^4.7.0",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@types/uuid": "^11.0.0",
     "@xyflow/react": "^12.9.2",
     "ai": "^5.0.86",

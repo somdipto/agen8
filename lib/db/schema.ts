@@ -113,6 +113,20 @@ export const workflowExecutionLogs = pgTable('workflow_execution_logs', {
   duration: text('duration'), // Duration in milliseconds
 });
 
+// Data sources table for user-configured database connections
+export const dataSources = pgTable('data_sources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id),
+  name: text('name').notNull(),
+  type: text('type').notNull().$type<'postgresql' | 'mysql' | 'mongodb'>(),
+  connectionString: text('connection_string').notNull(),
+  isDefault: boolean('is_default').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Workflow = typeof workflows.$inferSelect;
@@ -121,3 +135,5 @@ export type WorkflowExecution = typeof workflowExecutions.$inferSelect;
 export type NewWorkflowExecution = typeof workflowExecutions.$inferInsert;
 export type WorkflowExecutionLog = typeof workflowExecutionLogs.$inferSelect;
 export type NewWorkflowExecutionLog = typeof workflowExecutionLogs.$inferInsert;
+export type DataSource = typeof dataSources.$inferSelect;
+export type NewDataSource = typeof dataSources.$inferInsert;

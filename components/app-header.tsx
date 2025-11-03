@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { UserMenu } from '@/components/workflows/user-menu';
 
 interface AppHeaderProps {
@@ -37,7 +38,9 @@ export function AppHeader({
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
-          <h1 className="text-xl font-semibold">{title}</h1>
+          <Link href="/" className="transition-opacity hover:opacity-80">
+            <h1 className="text-xl font-semibold">{title}</h1>
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           {actions}

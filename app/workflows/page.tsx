@@ -4,11 +4,11 @@ import { Provider } from 'jotai';
 import { AuthProvider } from '@/components/auth/auth-provider';
 import { WorkflowsList } from '@/components/workflows/workflows-list';
 
-export default function Home() {
+export default function WorkflowsPage() {
   return (
     <Provider>
       <AuthProvider>
-        <WorkflowsList limit={3} />
+        <WorkflowsList showPrompt={false} enableSelection />
       </AuthProvider>
     </Provider>
   );
