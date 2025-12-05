@@ -268,6 +268,185 @@ const searchResult = await firecrawlSearchStep({
 });
 ```
 
+## Architecture
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Layer                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Workflow     │  │ Code Editor  │  │ Execution    │          │
+│  │ Canvas       │  │ (Monaco)     │  │ Dashboard    │          │
+│  │ (React Flow) │  │              │  │              │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Application Layer                           │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Next.js      │  │ API Routes   │  │ Better Auth  │          │
+│  │ App Router   │  │              │  │              │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Business Logic Layer                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Workflow     │  │ Code         │  │ AI           │          │
+│  │ DevKit       │  │ Generator    │  │ Generator    │          │
+│  │ Engine       │  │              │  │              │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Data Layer                                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ PostgreSQL   │  │ Drizzle ORM  │  │ Vercel Blob  │          │
+│  │ (Neon)       │  │              │  │              │          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    External Services Layer                       │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐       │
+│  │ OpenAI │ │ Resend │ │ Linear │ │ Slack  │ │ GitHub │       │
+│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘       │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐       │
+│  │ Stripe │ │fal.ai  │ │Firecrawl│ │Perplexity│ │v0    │       │
+│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Workflow Execution Flow
+
+```
+User Triggers Workflow
+         │
+         ▼
+POST /api/workflows/{id}/execute
+         │
+         ▼
+Load Workflow Definition (PostgreSQL)
+         │
+         ▼
+Workflow DevKit Engine
+         │
+         ├─────────────────────────────────┐
+         │                                 │
+         ▼                                 ▼
+   Trigger Node                      Action Nodes
+   (webhook/schedule/manual)         (integrations)
+         │                                 │
+         │                                 ├─► Resend (Email)
+         │                                 ├─► Linear (Tickets)
+         │                                 ├─► Slack (Messages)
+         │                                 ├─► OpenAI (AI)
+         │                                 ├─► GitHub (Issues)
+         │                                 └─► [Other Services]
+         │                                 │
+         └─────────────┬───────────────────┘
+                       │
+                       ▼
+         Log Each Step (workflow_execution_logs)
+                       │
+                       ▼
+         Store Result (workflow_executions)
+                       │
+                       ▼
+              Return to User
+```
+
+### Database Schema
+
+```
+┌─────────────────┐
+│     user        │
+├─────────────────┤
+│ id              │
+│ email           │
+│ name            │
+│ createdAt       │
+└─────────────────┘
+        │
+        │ 1:N
+        ▼
+┌─────────────────┐
+│   workflows     │
+├─────────────────┤
+│ id              │
+│ userId          │◄────┐
+│ name            │     │
+│ description     │     │
+│ nodes           │     │
+│ edges           │     │
+│ createdAt       │     │
+│ updatedAt       │     │
+└─────────────────┘     │
+        │               │
+        │ 1:N           │
+        ▼               │
+┌─────────────────────┐ │
+│workflow_executions  │ │
+├─────────────────────┤ │
+│ id                  │ │
+│ workflowId          │─┘
+│ status              │
+│ startedAt           │
+│ completedAt         │
+│ result              │
+└─────────────────────┘
+        │
+        │ 1:N
+        ▼
+┌──────────────────────────┐
+│workflow_execution_logs   │
+├──────────────────────────┤
+│ id                       │
+│ executionId              │
+│ nodeId                   │
+│ status                   │
+│ input                    │
+│ output                   │
+│ error                    │
+│ timestamp                │
+└──────────────────────────┘
+```
+
+### Deployment Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           Vercel Platform                │
+│                                          │
+│  ┌────────────────────────────────────┐ │
+│  │     Next.js Application            │ │
+│  │  ┌──────────┐  ┌──────────┐       │ │
+│  │  │ Static   │  │ Serverless│      │ │
+│  │  │ Assets   │  │ Functions │      │ │
+│  │  │ (CDN)    │  │ (API)     │      │ │
+│  │  └──────────┘  └──────────┘       │ │
+│  └────────────────────────────────────┘ │
+│                                          │
+│  Environment Variables:                  │
+│  • DATABASE_URL                          │
+│  • BETTER_AUTH_SECRET                    │
+│  • AI_GATEWAY_API_KEY                    │
+└─────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────┐
+│         Neon PostgreSQL                  │
+│  (Auto-provisioned by Vercel)           │
+│  • Connection pooling                    │
+│  • Auto-scaling                          │
+└─────────────────────────────────────────┘
+```
+
 ## Tech Stack
 
 - **Framework**: Next.js 16 with React 19
